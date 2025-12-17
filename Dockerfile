@@ -3,7 +3,9 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy everything including node_modules from host
+# Note: We copy node_modules from host instead of running npm install
+# due to network certificate issues in some build environments.
+# Users should run 'npm install' locally before building the Docker image.
 COPY . .
 
 # Build the application 
@@ -27,7 +29,9 @@ FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Copy everything including node_modules from host
+# Note: We copy node_modules from host instead of running npm install
+# due to network certificate issues in some build environments.
+# Users should run 'npm install' locally before building the Docker image.
 COPY . .
 
 EXPOSE 5173
