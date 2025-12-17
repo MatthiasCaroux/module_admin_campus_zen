@@ -48,6 +48,12 @@ npm run preview
 
 ### Option 2: Installation avec Docker
 
+**Important:** Avant de builder avec Docker, assurez-vous d'avoir installé les dépendances localement:
+
+```bash
+npm install
+```
+
 #### Développement avec Docker
 
 ```bash

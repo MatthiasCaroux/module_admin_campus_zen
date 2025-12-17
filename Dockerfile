@@ -3,16 +3,10 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+# Copy everything including node_modules from host
 COPY . .
 
-# Build the application
+# Build the application 
 RUN npm run build
 
 # Production stage
@@ -33,13 +27,7 @@ FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
+# Copy everything including node_modules from host
 COPY . .
 
 EXPOSE 5173
