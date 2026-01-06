@@ -2,6 +2,61 @@
 
 Module d'administration pour le projet Campus Zen, développé avec Vue.js 3 et Vite.
 
+Interface d'administration complète permettant de gérer facilement les questionnaires, questions, réponses et ressources de l'application Campus Zen.
+
+## ✨ Fonctionnalités principales
+
+### 🔐 Authentification
+- Connexion sécurisée (admin/admin)
+- Protection des routes avec guard
+
+### 📊 Dashboard
+- Vue d'ensemble des statistiques
+- Compteurs en temps réel (questionnaires, questions, réponses, ressources, climats, personnes)
+- Accès rapide aux sections principales
+
+### 📋 Gestion des Questionnaires
+- **Vue hiérarchique avec menus déroulants** :
+  - Cliquer sur un questionnaire → affiche ses questions
+  - Cliquer sur une question → affiche ses réponses
+- **CRUD complet à tous les niveaux** :
+  - Créer/Modifier/Supprimer des questionnaires
+  - Ajouter/Modifier/Supprimer des questions directement depuis le questionnaire
+  - Ajouter/Modifier/Supprimer des réponses directement depuis la question
+- Design épuré avec bordures colorées et badges de score
+
+### ❓ Gestion des Questions
+- CRUD complet (Créer, Lire, Modifier, Supprimer)
+- **Création automatique de réponses Likert** :
+  - Option cochable lors de la création d'une question
+  - Génère automatiquement 7 réponses (Jamais → Toujours, scores 1-7)
+- Sélection du questionnaire associé
+- Définition du poids de la question
+- **Vue des réponses** : bouton pour afficher toutes les réponses d'une question en modal
+- Affichage du nombre de réponses par question
+
+### 💬 Gestion des Réponses
+- CRUD complet
+- Lien vers la question parente
+- Attribution de scores
+- Filtrage par question
+
+### 📚 Gestion des Ressources
+- CRUD complet
+- Types de ressources : Vidéo, Article, Podcast, Autre
+- Badges colorés par type
+- Liens externes cliquables
+- Descriptions détaillées
+
+### 🌤️ Gestion des Climats
+- CRUD complet
+- Affichage en cartes élégantes
+- Interface simple et intuitive
+
+### 👥 Gestion des Personnes et Messages
+- Vue en lecture seule
+- Affichage JSON détaillé
+
 ## 📋 Prérequis
 
 ### Pour l'installation locale
@@ -133,12 +188,77 @@ Ce projet utilise une architecture Docker multi-stage:
 - ✅ Hot-reload en développement
 - ✅ Configuration Nginx optimisée pour Vue.js
 
+## 🎯 Guide d'utilisation
+
+### Connexion
+1. Ouvrez l'application sur [http://localhost:5173](http://localhost:5173)
+2. Connectez-vous avec les identifiants : **admin** / **admin**
+3. Vous êtes redirigé vers le Dashboard
+
+### Gérer les Questionnaires (Méthode recommandée)
+1. Allez dans **Questionnaires**
+2. Cliquez sur un questionnaire pour le déplier
+3. Utilisez **"+ Ajouter une question"** pour créer une nouvelle question
+4. Cliquez sur une question pour la déplier
+5. Utilisez **"+ Ajouter une réponse"** pour créer une nouvelle réponse
+6. Modifiez ou supprimez directement avec les boutons à droite
+
+**Avantage** : Vue hiérarchique complète en un seul écran !
+
+### Créer une Question avec échelle Likert
+1. Allez dans **Questions**
+2. Cliquez sur **"+ Nouvelle Question"**
+3. Remplissez l'intitulé et le poids
+4. **Cochez "Créer automatiquement les réponses Likert"**
+5. Validez → 7 réponses sont créées automatiquement (scores 1 à 7)
+
+### Voir les Réponses d'une Question
+1. Dans la page **Questions**, cliquez sur le bouton violet **"X réponse(s)"**
+2. Un modal s'ouvre avec toutes les réponses triées par score
+
+### Gérer les Ressources
+1. Allez dans **Ressources**
+2. Ajoutez des vidéos, articles, podcasts avec leurs liens
+3. Les badges de couleur indiquent automatiquement le type
+
 ## 🛠️ Technologies utilisées
 
-- **Vue.js 3** - Framework JavaScript progressif
-- **Vite** - Build tool et dev server ultra-rapide
-- **Docker** - Containerisation
+- **Vue.js 3** - Framework JavaScript progressif avec Composition API
+- **Vue Router 4** - Routing avec protection des routes
+- **Axios** - Client HTTP pour les appels API
+- **Vite** - Build tool et dev server ultra-rapide avec HMR
+- **Docker** - Containerisation multi-stage
 - **Nginx** - Serveur web pour la production
+
+## 🏗️ Architecture
+
+### API Backend
+- URL de base : `http://54.38.35.105:8000/api/`
+- Endpoints : questionnaires, questions, reponses, ressources, climats, personnes, messages, etc.
+
+### Structure Frontend
+```
+src/
+├── components/
+│   ├── Navbar.vue          # Navigation principale
+│   └── HelloWorld.vue      # Composant exemple (non utilisé)
+├── views/
+│   ├── Login.vue           # Page de connexion
+│   ├── Dashboard.vue       # Tableau de bord
+│   ├── Questionnaires.vue  # Gestion avec menus déroulants
+│   ├── Questions.vue       # Gestion des questions + Likert
+│   ├── Reponses.vue        # Gestion des réponses
+│   ├── Ressources.vue      # Gestion des ressources
+│   ├── Climats.vue         # Gestion des climats
+│   ├── Personnes.vue       # Vue des personnes
+│   └── Messages.vue        # Vue des messages
+├── services/
+│   └── api.js              # Service API centralisé
+├── router/
+│   └── index.js            # Configuration du routing
+├── App.vue                 # Composant racine
+└── main.js                 # Point d'entrée
+```
 
 ## 📝 Commandes Docker utiles
 
