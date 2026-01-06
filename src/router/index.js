@@ -8,6 +8,7 @@ import Ressources from '../views/Ressources.vue'
 import Climats from '../views/Climats.vue'
 import Personnes from '../views/Personnes.vue'
 import Messages from '../views/Messages.vue'
+import Statistiques from '../views/Statistiques.vue'
 
 const routes = [
   {
@@ -61,6 +62,12 @@ const routes = [
     path: '/messages',
     name: 'Messages',
     component: Messages,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/statistiques',
+    name: 'Statistiques',
+    component: Statistiques,
     meta: { requiresAuth: true },
   },
 ]

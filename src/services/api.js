@@ -59,6 +59,9 @@ const apiService = {
   createMessage: (data) => api.post('/messages/', data),
   updateMessage: (id, data) => api.put(`/messages/${id}/`, data),
   deleteMessage: (id) => api.delete(`/messages/${id}/`),
+
+  // Statuts
+  getStatuts: () => api.get('/statuts/'),
 }
 
 export default apiService

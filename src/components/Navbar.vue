@@ -12,6 +12,7 @@
       <router-link to="/climats" class="nav-link">Climats</router-link>
       <router-link to="/personnes" class="nav-link">Personnes</router-link>
       <router-link to="/messages" class="nav-link">Messages</router-link>
+      <router-link to="/statistiques" class="nav-link">📊 Statistiques</router-link>
     </div>
     <button @click="logout" class="btn-logout">Déconnexion</button>
   </nav>

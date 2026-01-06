@@ -35,6 +35,10 @@
       <div class="quick-links">
         <h2>Accès rapide</h2>
         <div class="links-grid">
+          <router-link to="/statistiques" class="quick-link highlight">
+            <span class="icon">📊</span>
+            <span>Statistiques et Export</span>
+          </router-link>
           <router-link to="/questionnaires" class="quick-link">
             <span class="icon">📋</span>
             <span>Gérer les Questionnaires</span>
@@ -181,5 +185,14 @@ h1 {
 
 .quick-link span:last-child {
   font-weight: 500;
+}
+
+.quick-link.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.quick-link.highlight .icon {
+  font-size: 2.5rem;
 }
 </style>
