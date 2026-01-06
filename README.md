@@ -163,6 +163,21 @@ module_admin_campus_zen/
 ├── src/
 │   ├── assets/        # Assets (images, styles, etc.)
 │   ├── components/    # Composants Vue réutilisables
+│   │   └── Navbar.vue
+│   ├── views/         # Pages de l'application
+│   │   ├── Login.vue
+│   │   ├── Dashboard.vue
+│   │   ├── Questionnaires.vue
+│   │   ├── Questions.vue
+│   │   ├── Reponses.vue
+│   │   ├── Ressources.vue
+│   │   ├── Climats.vue
+│   │   ├── Personnes.vue
+│   │   └── Messages.vue
+│   ├── services/      # Services et API
+│   │   └── api.js
+│   ├── router/        # Configuration du routing
+│   │   └── index.js
 │   ├── App.vue        # Composant racine
 │   └── main.js        # Point d'entrée de l'application
 ├── index.html         # Template HTML principal
@@ -291,6 +306,48 @@ VITE_API_URL=http://localhost:3000/api
 
 Les variables d'environnement commençant par `VITE_` seront automatiquement injectées dans l'application.
 
+## 🎨 Design et UX
+
+- Interface moderne et responsive
+- Palette de couleurs cohérente (violet/bleu)
+- Animations et transitions fluides
+- Feedback visuel sur toutes les actions
+- Modals pour les formulaires
+- Boutons d'action alignés et uniformes
+- Badges colorés pour les types et scores
+- Messages de confirmation pour les suppressions
+
+## 🔑 Fonctionnalités avancées
+
+### Menu déroulant hiérarchique
+- Navigation intuitive à 3 niveaux (Questionnaire → Questions → Réponses)
+- Icônes ► et ▼ pour indiquer l'état (fermé/ouvert)
+- Actions CRUD disponibles à chaque niveau
+- Vue d'ensemble complète en un seul écran
+
+### Génération automatique Likert
+- Template de 7 réponses pré-configuré
+- Échelle standardisée : Jamais (1) → Toujours (7)
+- Gain de temps énorme pour la création de questionnaires
+- Scores automatiquement assignés
+
+### Gestion en temps réel
+- Rechargement automatique après chaque action
+- Compteurs mis à jour dynamiquement
+- Synchronisation avec l'API backend
+- Pas de rechargement de page nécessaire
+
+## 🚀 Améliorations futures possibles
+
+- [ ] Recherche et filtres dans les tableaux
+- [ ] Export des données (CSV, Excel)
+- [ ] Import en masse de questionnaires
+- [ ] Statistiques avancées
+- [ ] Système de permissions plus granulaire
+- [ ] Gestion des médias (upload d'images)
+- [ ] Historique des modifications
+- [ ] Mode sombre
+
 ## 📄 Licence
 
 Ce projet est destiné au projet Campus Zen.
@@ -298,3 +355,7 @@ Ce projet est destiné au projet Campus Zen.
 ## 👤 Auteur
 
 Matthias Caroux
+
+---
+
+**Développé avec ❤️ en Vue.js 3**
