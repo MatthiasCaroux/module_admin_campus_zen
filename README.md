@@ -4,11 +4,27 @@ Module d'administration pour le projet Campus Zen, développé avec Vue.js 3 et 
 
 Interface d'administration complète permettant de gérer facilement les questionnaires, questions, réponses et ressources de l'application Campus Zen.
 
+## 🔐 Sécurité - Cookies HttpOnly
+
+**⚠️ IMPORTANT : Ce projet utilise des cookies HttpOnly pour l'authentification JWT.**
+
+Les tokens sont stockés dans des cookies HttpOnly sécurisés côté serveur.
+
+### Avantages
+- ✅ Protection contre les attaques XSS
+- ✅ Refresh automatique des tokens
+- ✅ Gestion simplifiée de l'authentification
+- ✅ Cookies sécurisés (HttpOnly, SameSite, Secure en production)
+
+---
+
 ## ✨ Fonctionnalités principales
 
 ### 🔐 Authentification
-- Connexion sécurisée (admin/admin)
+- Connexion sécurisée avec cookies HttpOnly
 - Protection des routes avec guard
+- Refresh automatique du token (transparent pour l'utilisateur)
+- Déconnexion sécurisée (supprime les cookies côté serveur)
 
 ### 📊 Dashboard
 - Vue d'ensemble des statistiques

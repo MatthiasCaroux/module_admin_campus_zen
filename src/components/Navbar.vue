@@ -20,12 +20,20 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import apiService from '../services/api'
 
 const router = useRouter()
 
-const logout = () => {
-  localStorage.removeItem('isAuthenticated')
-  router.push('/login')
+const logout = async () => {
+  try {
+    // Appel au backend pour supprimer les cookies HttpOnly
+    await apiService.logout()
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', error)
+  } finally {
+    // Redirection vers la page de login
+    router.push('/login')
+  }
 }
 </script>
 

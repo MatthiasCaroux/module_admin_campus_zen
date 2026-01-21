@@ -46,25 +46,31 @@ const password = ref('')
 const error = ref('')
 
 const handleLogin = () => {
-    apiService.login({ emailPers: username.value, password: password.value })
+  apiService.login({ emailPers: username.value, password: password.value })
     .then(response => {
+      console.log('Login response:', response)
+      console.log('Set-Cookie headers:', response.headers)
+      console.log('Cookies après login:', document.cookie)
+      
       if (response.status === 200 && response.data.role === 'admin') {
+        // Les tokens sont maintenant stockés dans les cookies HttpOnly
+        // On stocke uniquement le flag d'authentification
         localStorage.setItem('isAuthenticated', 'true')
-        localStorage.setItem('accessToken', response.data.access)
-        localStorage.setItem('refreshToken', response.data.refresh)
+        
         router.push('/')
       } else {
         error.value = 'Accès refusé. Vous n\'êtes pas administrateur.'
       }
     })
     .catch((error_) => {
+      console.error('Login error:', error_.response?.data)
       if (error_.response && (error_.response.status === 401 || error_.response.status === 400)) {
         error.value = 'Identifiants incorrects'
       } else {
         error.value = 'Une erreur est survenue. Veuillez réessayer.'
       }
     }) 
-  }
+}
 </script>
 
 <style scoped>
