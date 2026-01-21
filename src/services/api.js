@@ -1,8 +1,8 @@
 import axios from 'axios'
 import router from '../router'
 
-// const API_BASE_URL = 'https://incidents-bouake.com/api'
-const API_BASE_URL = 'http://127.0.0.1:8080/api'
+const API_BASE_URL = 'https://incidents-bouake.com/api'
+// const API_BASE_URL = 'http://localhost:8000/api'
 
 // Instance axios avec credentials
 const api = axios.create({
@@ -10,7 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // IMPORTANT: Envoie les cookies HttpOnly
+  withCredentials: true, // IMPORTANT: Envoie les cookies HttpOnly automatiquement
 })
 
 // Variable pour éviter les appels multiples au refresh
@@ -53,10 +53,8 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // Tentative de refresh du token
-        console.log('Tentative de refresh du token...')
+        // Tentative de refresh du token (le cookie est envoyé automatiquement)
         await api.post('/token/refresh/')
-        console.log('Token refreshed avec succès')
         
         isRefreshing = false
         processQueue(null)
@@ -64,7 +62,6 @@ api.interceptors.response.use(
         // Réessayer la requête originale
         return api(originalRequest)
       } catch (refreshError) {
-        console.error('Échec du refresh:', refreshError.response?.data)
         processQueue(refreshError, null)
         isRefreshing = false
         

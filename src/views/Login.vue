@@ -51,6 +51,7 @@ const handleLogin = () => {
       console.log('Login response:', response)
       console.log('Set-Cookie headers:', response.headers)
       console.log('Cookies après login:', document.cookie)
+      console.log('Response data:', response.data)
       
       if (response.status === 200 && response.data.role === 'admin') {
         // Les tokens sont maintenant stockés dans les cookies HttpOnly
