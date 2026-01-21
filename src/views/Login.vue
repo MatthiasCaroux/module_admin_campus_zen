@@ -38,6 +38,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import apiService from '../services/api'
 
 const router = useRouter()
 const username = ref('')
@@ -45,13 +46,25 @@ const password = ref('')
 const error = ref('')
 
 const handleLogin = () => {
-  if (username.value === 'admin' && password.value === 'admin') {
-    localStorage.setItem('isAuthenticated', 'true')
-    router.push('/')
-  } else {
-    error.value = 'Identifiants incorrects'
+    apiService.login({ emailPers: username.value, password: password.value })
+    .then(response => {
+      if (response.status === 200 && response.data.role === 'admin') {
+        localStorage.setItem('isAuthenticated', 'true')
+        localStorage.setItem('accessToken', response.data.access)
+        localStorage.setItem('refreshToken', response.data.refresh)
+        router.push('/')
+      } else {
+        error.value = 'Accès refusé. Vous n\'êtes pas administrateur.'
+      }
+    })
+    .catch((error_) => {
+      if (error_.response && (error_.response.status === 401 || error_.response.status === 400)) {
+        error.value = 'Identifiants incorrects'
+      } else {
+        error.value = 'Une erreur est survenue. Veuillez réessayer.'
+      }
+    }) 
   }
-}
 </script>
 
 <style scoped>

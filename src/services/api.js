@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://54.38.35.105:8000/api'
+const API_BASE_URL = 'https://incidents-bouake.com/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -62,6 +62,10 @@ const apiService = {
 
   // Statuts
   getStatuts: () => api.get('/statuts/'),
+
+  // Pour authentification
+  login: (data) => api.post('/token/', data),
+  refreshToken: (data) => api.post('/token/refresh/', data),
 }
 
 export default apiService
