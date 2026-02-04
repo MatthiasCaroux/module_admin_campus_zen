@@ -72,18 +72,29 @@
                     <div class="question-text">
                       <strong>Question {{ question.idQuestion }}:</strong> {{ question.intituleQuestion }}
                       <span class="question-weight">(Poids: {{ question.poids }})</span>
+                      <span class="question-type-badge" :class="'qtype-' + getQuestionTypeValue(question)">
+                        {{ getQuestionTypeIcon(question) }} {{ getQuestionTypeLabel(question) }}
+                      </span>
                     </div>
                   </div>
                   <div class="question-actions" @click.stop>
-                    <button @click="openEditQuestionModal(question)" class="btn-edit-small">Modifier</button>
+                    <button
+                      @click="openEditQuestionModal(question)"
+                      class="btn-edit-small"
+                    >
+                      Modifier
+                    </button>
                     <button @click="deleteQuestion(question.idQuestion)" class="btn-delete-small">Supprimer</button>
                   </div>
                 </div>
 
                 <!-- Réponses de la question (déroulant) -->
                 <div v-if="expandedQuestions.includes(question.idQuestion)" class="reponses-container">
-                  <div class="add-reponse-btn-container">
+                  <div class="add-reponse-btn-container" v-if="isEditableQuestion(question)">
                     <button @click="openAddReponseModal(question.idQuestion)" class="btn-add-tiny">+ Ajouter une réponse</button>
+                  </div>
+                  <div v-else class="locked-responses-info">
+                    🔒 Réponses automatiques (non modifiables)
                   </div>
 
                   <div v-if="getReponsesByQuestion(question.idQuestion).length === 0" class="no-data">
@@ -94,8 +105,10 @@
                       <span class="reponse-text">{{ reponse.texte }}</span>
                       <div class="reponse-actions">
                         <span class="reponse-score">Score: {{ reponse.score }}</span>
-                        <button @click="openEditReponseModal(reponse)" class="btn-edit-tiny">Modifier</button>
-                        <button @click="deleteReponse(reponse.idReponse)" class="btn-delete-tiny">Supprimer</button>
+                        <template v-if="isEditableQuestion(question)">
+                          <button @click="openEditReponseModal(reponse)" class="btn-edit-tiny">Modifier</button>
+                          <button @click="deleteReponse(reponse.idReponse)" class="btn-delete-tiny">Supprimer</button>
+                        </template>
                       </div>
                     </div>
                   </div>
@@ -177,6 +190,13 @@
               <label>Poids</label>
               <input v-model.number="questionForm.poids" type="number" step="0.1" required />
             </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select v-model="questionForm.type" required>
+                <option value="">-- Sélectionner un type --</option>
+                <option v-for="t in TYPE_CHOICES" :key="t.value" :value="t.value">{{ t.label }}</option>
+              </select>
+            </div>
             <div class="modal-actions">
               <button type="button" @click="closeQuestionModal" class="btn-secondary">Annuler</button>
               <button type="submit" class="btn-primary">{{ isEditingQuestion ? 'Modifier' : 'Ajouter' }}</button>
@@ -190,14 +210,26 @@
         <div class="modal-content" @click.stop>
           <h2>{{ isEditingReponse ? 'Modifier' : 'Ajouter' }} une Réponse</h2>
           <form @submit.prevent="saveReponse">
-            <div class="form-group">
-              <label>Texte de la réponse</label>
-              <input v-model="reponseForm.texte" type="text" required />
+            <!-- Pour les questions slider : sélecteur de pourcentage -->
+            <div v-if="isSliderQuestion(reponseForm.question)" class="form-group">
+              <label>Fréquence</label>
+              <select v-model.number="reponseForm.score" required @change="updateSliderTexte">
+                <option value="">-- Choisir une fréquence --</option>
+                <option v-for="opt in sliderOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <p class="help-text">Texte enregistré : "{{ getSliderLabel(reponseForm.score) }}"</p>
             </div>
-            <div class="form-group">
-              <label>Score</label>
-              <input v-model.number="reponseForm.score" type="number" required />
-            </div>
+            <!-- Pour les autres types : champs classiques -->
+            <template v-else>
+              <div class="form-group">
+                <label>Texte de la réponse</label>
+                <input v-model="reponseForm.texte" type="text" required />
+              </div>
+              <div class="form-group">
+                <label>Score</label>
+                <input v-model.number="reponseForm.score" type="number" required />
+              </div>
+            </template>
             <div class="modal-actions">
               <button type="button" @click="closeReponseModal" class="btn-secondary">Annuler</button>
               <button type="submit" class="btn-primary">{{ isEditingReponse ? 'Modifier' : 'Ajouter' }}</button>
@@ -249,8 +281,10 @@ const questionForm = ref({
   intituleQuestion: '',
   poids: 1.0,
   questionnaireId: null,
+  type: '',
 })
 const editingQuestionId = ref(null)
+const originalQuestionType = ref(null) // Pour détecter un changement de type
 
 // Reponse modal
 const showReponseModal = ref(false)
@@ -261,6 +295,123 @@ const reponseForm = ref({
   question: null,
 })
 const editingReponseId = ref(null)
+
+// Template Likert 7 niveaux
+const likertTemplate = [
+  { texte: 'Jamais', score: 1 },
+  { texte: 'Très rarement', score: 2 },
+  { texte: 'Rarement', score: 3 },
+  { texte: 'Parfois', score: 4 },
+  { texte: 'Souvent', score: 5 },
+  { texte: 'Très souvent', score: 6 },
+  { texte: 'Toujours', score: 7 },
+]
+
+// Pourcentages disponibles pour le slider avec libellés (score 0-10)
+const sliderOptions = [
+  { value: 0, label: 'Jamais (0%)' },
+  { value: 10, label: 'Très rarement (10%)' },
+  { value: 20, label: 'Rarement (20%)' },
+  { value: 30, label: 'Parfois (30%)' },
+  { value: 40, label: 'Occasionnellement (40%)' },
+  { value: 50, label: 'Moyennement (50%)' },
+  { value: 60, label: 'Assez souvent (60%)' },
+  { value: 70, label: 'Souvent (70%)' },
+  { value: 80, label: 'Fréquemment (80%)' },
+  { value: 90, label: 'Très souvent (90%)' },
+  { value: 100, label: 'Toujours (100%)' },
+]
+
+const getQuestionById = (id) => questions.value.find(q => q.idQuestion === id)
+
+const getSliderLabel = (value) => {
+  const option = sliderOptions.find(o => o.value === value)
+  return option ? option.label.split(' (')[0] : `${value}%`
+}
+
+const updateSliderTexte = () => {
+  if (reponseForm.value.score !== '') {
+    reponseForm.value.texte = getSliderLabel(reponseForm.value.score)
+  }
+}
+
+// Types disponibles pour les questions
+const TYPE_CHOICES = [
+  { value: 'likert', label: 'Likert' },
+  { value: 'slider', label: 'Slider' },
+  { value: 'smiley', label: 'Smiley' },
+]
+
+const TYPE_ICONS = {
+  likert: '📊',
+  slider: '🎚️',
+  smiley: '😊',
+}
+
+const getQuestionTypeValue = (question) => {
+  const raw = question?.type
+    || question?.typeQuestion
+    || question?.typeQ
+    || question?.typeChoix
+    || question?.type_question
+    || question?.type_question_id
+    || question?.typeQuestionId
+    || ''
+
+  if (raw && typeof raw === 'object') {
+    return raw.value || raw.type || raw.code || raw.slug || raw.id || raw.pk || ''
+  }
+
+  return raw
+}
+
+// Ces fonctions doivent être APRÈS getQuestionTypeValue
+const isSliderQuestion = (questionId) => {
+  const q = getQuestionById(questionId)
+  return getQuestionTypeValue(q) === 'slider'
+}
+
+// On interdit la modification des réponses uniquement pour les questions de type smiley
+const isEditableQuestion = (question) => {
+  const type = getQuestionTypeValue(question)
+  return type !== 'smiley'
+}
+
+const getQuestionTypeLabel = (question) => {
+  const value = getQuestionTypeValue(question)
+  const match = TYPE_CHOICES.find(t => t.value === value)
+  return match ? match.label : (value || 'N/A')
+}
+
+const getQuestionTypeIcon = (question) => {
+  const value = getQuestionTypeValue(question)
+  return TYPE_ICONS[value] || '❓'
+}
+
+const buildQuestionPayload = (data) => ({
+  intituleQuestion: data.intituleQuestion,
+  poids: data.poids,
+  questionnaireId: data.questionnaireId,
+  typeQuestion: data.type,
+})
+
+// Templates pour types avec réponses automatiques
+const sliderTemplate = null
+
+const smileyTemplate = [
+  { texte: '😢 Très mal', score: 1 },
+  { texte: '😟 Mal', score: 2 },
+  { texte: '😐 Neutre', score: 3 },
+  { texte: '🙂 Bien', score: 4 },
+  { texte: '😄 Très bien', score: 5 },
+]
+
+const getTemplateForType = (type) => {
+  if (type === 'likert') return likertTemplate
+  if (type === 'slider') return sliderTemplate
+  if (type === 'smiley') return smileyTemplate
+  return null
+}
 
 const loadQuestionnaires = async () => {
   try {
@@ -382,6 +533,7 @@ const openAddQuestionModal = (questionnaireId) => {
     intituleQuestion: '',
     poids: 1.0,
     questionnaireId: questionnaireId,
+    type: '',
   }
   showQuestionModal.value = true
 }
@@ -389,10 +541,12 @@ const openAddQuestionModal = (questionnaireId) => {
 const openEditQuestionModal = (question) => {
   isEditingQuestion.value = true
   editingQuestionId.value = question.idQuestion
+  originalQuestionType.value = getQuestionTypeValue(question) // Sauvegarder l'ancien type
   questionForm.value = {
     intituleQuestion: question.intituleQuestion,
     poids: question.poids,
     questionnaireId: question.questionnaireId,
+    type: getQuestionTypeValue(question),
   }
   showQuestionModal.value = true
 }
@@ -403,22 +557,73 @@ const closeQuestionModal = () => {
     intituleQuestion: '',
     poids: 1.0,
     questionnaireId: null,
+    type: '',
   }
   editingQuestionId.value = null
+  originalQuestionType.value = null
 }
 
 const saveQuestion = async () => {
   try {
+    const payload = buildQuestionPayload(questionForm.value)
+    console.log('Payload question:', payload)
+    
     if (isEditingQuestion.value) {
-      await apiService.updateQuestion(editingQuestionId.value, questionForm.value)
+      // Mettre à jour la question
+      await apiService.updateQuestion(editingQuestionId.value, payload)
+      
+      // Si le type a changé, supprimer les anciennes réponses et créer les nouvelles
+      if (originalQuestionType.value !== questionForm.value.type) {
+        console.log('Type changé de', originalQuestionType.value, 'à', questionForm.value.type)
+        
+        // Supprimer les anciennes réponses
+        const oldReponses = reponses.value.filter(r => r.question === editingQuestionId.value)
+        for (const reponse of oldReponses) {
+          await apiService.deleteReponse(reponse.idReponse)
+        }
+        console.log('Anciennes réponses supprimées')
+        
+        // Créer les nouvelles réponses selon le nouveau type
+        const template = getTemplateForType(questionForm.value.type)
+        if (template) {
+          const reponsePromises = template.map(reponse =>
+            apiService.createReponse({
+              texte: reponse.texte,
+              score: reponse.score,
+              question: editingQuestionId.value
+            })
+          )
+          await Promise.all(reponsePromises)
+          console.log('Nouvelles réponses créées')
+        }
+      }
     } else {
-      await apiService.createQuestion(questionForm.value)
+      const response = await apiService.createQuestion(payload)
+      const newQuestion = response.data
+      console.log('Question créée:', newQuestion)
+
+      // Créer des réponses par défaut selon le type (likert/smiley)
+      const template = getTemplateForType(questionForm.value.type)
+      console.log('Template pour', questionForm.value.type, ':', template)
+      
+      if (newQuestion.idQuestion && template) {
+        const reponsePromises = template.map(reponse =>
+          apiService.createReponse({
+            texte: reponse.texte,
+            score: reponse.score,
+            question: newQuestion.idQuestion
+          })
+        )
+        await Promise.all(reponsePromises)
+        console.log('Réponses créées')
+      }
     }
     closeQuestionModal()
     loadQuestionnaires()
   } catch (error) {
     console.error('Erreur lors de la sauvegarde:', error)
-    alert('Erreur lors de la sauvegarde de la question')
+    console.error('Détails:', error.response?.data)
+    alert('Erreur: ' + JSON.stringify(error.response?.data || error.message))
   }
 }
 
@@ -436,6 +641,11 @@ const deleteQuestion = async (id) => {
 
 // Reponse functions
 const openAddReponseModal = (questionId) => {
+  const q = getQuestionById(questionId)
+  if (!isEditableQuestion(q)) {
+    alert('Les réponses des questions Smiley sont automatiques et non modifiables')
+    return
+  }
   isEditingReponse.value = false
   reponseForm.value = {
     texte: '',
@@ -446,6 +656,11 @@ const openAddReponseModal = (questionId) => {
 }
 
 const openEditReponseModal = (reponse) => {
+  const q = getQuestionById(reponse.question)
+  if (!isEditableQuestion(q)) {
+    alert('Les réponses des questions Smiley sont automatiques et non modifiables')
+    return
+  }
   isEditingReponse.value = true
   editingReponseId.value = reponse.idReponse
   reponseForm.value = {
@@ -468,10 +683,18 @@ const closeReponseModal = () => {
 
 const saveReponse = async () => {
   try {
+    const payload = { ...reponseForm.value }
+    
+    // Pour les sliders, le score affiché est le pourcentage (0-100) mais on enregistre score/10 (0-10)
+    if (isSliderQuestion(reponseForm.value.question)) {
+      payload.texte = `${reponseForm.value.score}%`
+      payload.score = reponseForm.value.score / 10
+    }
+    
     if (isEditingReponse.value) {
-      await apiService.updateReponse(editingReponseId.value, reponseForm.value)
+      await apiService.updateReponse(editingReponseId.value, payload)
     } else {
-      await apiService.createReponse(reponseForm.value)
+      await apiService.createReponse(payload)
     }
     closeReponseModal()
     loadQuestionnaires()
@@ -778,6 +1001,40 @@ h1 {
   font-weight: 600;
 }
 
+.question-type-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.qtype-choix_multiple {
+  background: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #90caf9;
+}
+
+.qtype-choix_unique {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+.qtype-likert {
+  background: #e8f5e9;
+  color: #388e3c;
+  border: 1px solid #81c784;
+}
+
+.qtype-slider {
+  background: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffb74d;
+}
+
 .no-data {
   text-align: center;
   padding: 1rem;
@@ -963,6 +1220,14 @@ h1 {
   background: #2980b9;
 }
 
+.btn-edit-small:disabled,
+.btn-edit-tiny:disabled,
+.btn-delete-small:disabled,
+.btn-delete-tiny:disabled {
+  background: #b0c4de;
+  cursor: not-allowed;
+}
+
 .btn-delete-small,
 .btn-delete-tiny {
   background: #e74c3c;
@@ -978,6 +1243,16 @@ h1 {
 .btn-delete-small:hover,
 .btn-delete-tiny:hover {
   background: #c0392b;
+}
+  
+.locked-responses-info {
+background: #f8f9fa;
+color: #6c757d;
+padding: 0.5rem 1rem;
+border-radius: 4px;
+font-size: 0.85rem;
+margin-bottom: 0.5rem;
+border-left: 3px solid #6c757d;
 }
 
 /* Seuils/Climats styles */

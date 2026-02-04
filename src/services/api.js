@@ -1,8 +1,10 @@
 import axios from 'axios'
 import router from '../router'
 
+
 const API_BASE_URL = 'https://incidents-bouake.com/api'
 // const API_BASE_URL = 'http://localhost:8000/api'
+
 
 // Instance axios avec credentials
 const api = axios.create({
