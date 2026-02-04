@@ -16,6 +16,7 @@
               <th>ID</th>
               <th>Intitulé</th>
               <th>Poids</th>
+              <th>Type</th>
               <th>Questionnaire</th>
               <th>Réponses</th>
               <th>Actions</th>
@@ -26,6 +27,11 @@
               <td>{{ question.idQuestion }}</td>
               <td>{{ question.intituleQuestion }}</td>
               <td>{{ question.poids }}</td>
+              <td>
+                <span class="type-badge" :class="'type-' + getQuestionTypeValue(question)">
+                  {{ getQuestionTypeIcon(question) }} {{ getQuestionTypeLabel(question) }}
+                </span>
+              </td>
               <td>{{ getQuestionnaireName(question.questionnaireId) }}</td>
               <td>
                 <button @click="showResponses(question)" class="btn-responses">
@@ -66,15 +72,14 @@
               </select>
             </div>
 
-            <!-- Option pour créer les réponses Likert -->
-            <div v-if="!isEditing" class="form-group checkbox-group">
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="createLikertResponses" />
-                <span>Créer automatiquement les réponses Likert (échelle de 1 à 7)</span>
-              </label>
-              <p v-if="createLikertResponses" class="help-text">
-                7 réponses seront créées : Jamais (1), Très rarement (2), Rarement (3), Parfois (4), Souvent (5), Très souvent (6), Toujours (7)
-              </p>
+            <div class="form-group">
+              <label>Type de question</label>
+              <select v-model="form.type" required>
+                <option value="">-- Sélectionner un type --</option>
+                <option v-for="t in TYPE_CHOICES" :key="t.value" :value="t.value">
+                  {{ TYPE_ICONS[t.value] }} {{ t.label }}
+                </option>
+              </select>
             </div>
 
             <div class="modal-actions">
@@ -147,6 +152,34 @@ const likertTemplate = [
   { texte: 'Très souvent', score: 6 },
   { texte: 'Toujours', score: 7 },
 ]
+
+// Types disponibles pour les questions
+const TYPE_CHOICES = [
+  { value: 'likert', label: 'Likert' },
+  { value: 'slider', label: 'Slider' },
+  { value: 'smiley', label: 'Smiley' },
+]
+
+const TYPE_ICONS = {
+  likert: '📊',
+  slider: '🎚️',
+  smiley: '😊',
+}
+
+const getQuestionTypeValue = (question) => {
+  return question?.typeQuestion || question?.type || ''
+}
+
+const getQuestionTypeLabel = (question) => {
+  const value = getQuestionTypeValue(question)
+  const match = TYPE_CHOICES.find(t => t.value === value)
+  return match ? match.label : (value || 'N/A')
+}
+
+const getQuestionTypeIcon = (question) => {
+  const value = getQuestionTypeValue(question)
+  return TYPE_ICONS[value] || '❓'
+}
 
 const loadQuestions = async () => {
   try {
