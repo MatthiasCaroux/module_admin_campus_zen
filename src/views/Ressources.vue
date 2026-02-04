@@ -18,6 +18,7 @@
               <th>Titre</th>
               <th>Description</th>
               <th>Lien</th>
+              <th>Climat</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -28,6 +29,7 @@
               <td>{{ ressource.titreR }}</td>
               <td>{{ ressource.descriptionR }}</td>
               <td><a :href="ressource.lienR" target="_blank" class="link">Voir</a></td>
+              <td>{{ getClimatName(ressource.climat) }}</td>
               <td>
                 <button @click="openEditModal(ressource)" class="btn-edit">Modifier</button>
                 <button @click="deleteRessource(ressource.idR)" class="btn-delete">Supprimer</button>
@@ -64,6 +66,13 @@
               <label>Lien</label>
               <input v-model="form.lienR" type="url" required placeholder="https://..." />
             </div>
+            <div class="form-group">
+              <label>Climat</label>
+              <select v-model="form.climat" required>
+                <option value="">-- Sélectionner un climat --</option>
+                <option v-for="climat in climats" :key="climat.idClimat" :value="climat.idClimat">{{ climat.nomClimat }}</option>
+              </select>
+            </div>
             <div class="modal-actions">
               <button type="button" @click="closeModal" class="btn-secondary">Annuler</button>
               <button type="submit" class="btn-primary">{{ isEditing ? 'Modifier' : 'Créer' }}</button>
@@ -81,6 +90,7 @@ import Navbar from '../components/Navbar.vue'
 import apiService from '../services/api'
 
 const ressources = ref([])
+const climats = ref([])
 const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -89,6 +99,7 @@ const form = ref({
   titreR: '',
   descriptionR: '',
   lienR: '',
+  climat: '',
 })
 const editingId = ref(null)
 
@@ -105,6 +116,21 @@ const loadRessources = async () => {
   }
 }
 
+const loadClimats = async () => {
+  try {
+    const res = await apiService.getClimats()
+    climats.value = res.data
+  } catch (error) {
+    console.error('Erreur lors du chargement des climats:', error)
+  }
+}
+
+const getClimatName = (id) => {
+  if (id === null || id === undefined) return ''
+  const c = climats.value.find(cl => cl.idClimat === id)
+  return c ? c.nomClimat : id
+}
+
 const openCreateModal = () => {
   isEditing.value = false
   form.value = {
@@ -112,6 +138,7 @@ const openCreateModal = () => {
     titreR: '',
     descriptionR: '',
     lienR: '',
+    climat: '',
   }
   showModal.value = true
 }
@@ -124,6 +151,7 @@ const openEditModal = (ressource) => {
     titreR: ressource.titreR,
     descriptionR: ressource.descriptionR,
     lienR: ressource.lienR,
+    climat: ressource.climat ?? '',
   }
   showModal.value = true
 }
@@ -135,6 +163,7 @@ const closeModal = () => {
     titreR: '',
     descriptionR: '',
     lienR: '',
+    climat: '',
   }
   editingId.value = null
 }
@@ -167,7 +196,9 @@ const deleteRessource = async (id) => {
 }
 
 onMounted(() => {
+  // load both ressources and climat options
   loadRessources()
+  loadClimats()
 })
 </script>
 

@@ -18,6 +18,7 @@
               <div>
                 <h3>{{ questionnaire.nomQuestionnaire }}</h3>
                 <p class="description">{{ questionnaire.descriptionQuestionnaire }}</p>
+                <span class="seuils-count">{{ getSeuilsByQuestionnaire(questionnaire.idQuestionnaire).length }} climat(s) configuré(s)</span>
               </div>
             </div>
             <div class="questionnaire-actions" @click.stop>
@@ -26,8 +27,35 @@
             </div>
           </div>
 
-          <!-- Questions du questionnaire (déroulant) -->
-          <div v-if="expandedQuestionnaires.includes(questionnaire.idQuestionnaire)" class="questions-container">
+          <!-- Contenu déroulant du questionnaire -->
+          <div v-if="expandedQuestionnaires.includes(questionnaire.idQuestionnaire)" class="questionnaire-content">
+            <!-- Section Seuils/Climats -->
+            <div class="seuils-section">
+              <div class="section-header">
+                <h4>Climats et Seuils de Score</h4>
+                <button @click="openAddSeuilModal(questionnaire.idQuestionnaire)" class="btn-add-small">+ Ajouter un climat</button>
+              </div>
+
+              <div v-if="getSeuilsByQuestionnaire(questionnaire.idQuestionnaire).length === 0" class="no-data">
+                Aucun climat configuré pour ce questionnaire
+              </div>
+              <div v-else class="seuils-list">
+                <div v-for="seuil in getSeuilsByQuestionnaire(questionnaire.idQuestionnaire)" :key="seuil.idSeuil" class="seuil-item">
+                  <div class="seuil-info">
+                    <span class="seuil-climat">{{ getClimatName(seuil.climat) }}</span>
+                    <span class="seuil-range">Score: {{ seuil.minScore }} - {{ seuil.maxScore }}</span>
+                  </div>
+                  <p class="seuil-description">{{ seuil.description }}</p>
+                  <div class="seuil-actions">
+                    <button @click="openEditSeuilModal(seuil)" class="btn-edit-tiny">Modifier</button>
+                    <button @click="deleteSeuil(seuil.idSeuil)" class="btn-delete-tiny">Supprimer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section Questions -->
+            <div class="questions-container">
             <div class="add-question-btn-container">
               <button @click="openAddQuestionModal(questionnaire.idQuestionnaire)" class="btn-add-small">+ Ajouter une question</button>
             </div>
@@ -87,7 +115,44 @@
                 </div>
               </div>
             </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Modal Create/Edit Seuil -->
+      <div v-if="showSeuilModal" class="modal-overlay" @click="closeSeuilModal">
+        <div class="modal-content modal-large" @click.stop>
+          <h2>{{ isEditingSeuil ? 'Modifier' : 'Ajouter' }} un Climat</h2>
+          <form @submit.prevent="saveSeuil">
+            <div class="form-group">
+              <label>Climat</label>
+              <select v-model="seuilForm.climat" required>
+                <option value="">Sélectionner un climat</option>
+                <option v-for="climat in climats" :key="climat.idClimat" :value="climat.idClimat">
+                  {{ climat.nomClimat }}
+                </option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Score minimum</label>
+                <input v-model.number="seuilForm.minScore" type="number" min="0" required />
+              </div>
+              <div class="form-group">
+                <label>Score maximum</label>
+                <input v-model.number="seuilForm.maxScore" type="number" min="0" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea v-model="seuilForm.description" required placeholder="Description du ressenti de l'étudiant pour cette plage de score..."></textarea>
+            </div>
+            <div class="modal-actions">
+              <button type="button" @click="closeSeuilModal" class="btn-secondary">Annuler</button>
+              <button type="submit" class="btn-primary">{{ isEditingSeuil ? 'Modifier' : 'Ajouter' }}</button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -184,6 +249,8 @@ import apiService from '../services/api'
 const questionnaires = ref([])
 const questions = ref([])
 const reponses = ref([])
+const seuils = ref([])
+const climats = ref([])
 const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -194,6 +261,18 @@ const form = ref({
   descriptionQuestionnaire: '',
 })
 const editingId = ref(null)
+
+// Seuil modal
+const showSeuilModal = ref(false)
+const isEditingSeuil = ref(false)
+const seuilForm = ref({
+  minScore: 0,
+  maxScore: 10,
+  description: '',
+  questionnaire: null,
+  climat: '',
+})
+const editingSeuilId = ref(null)
 
 // Question modal
 const showQuestionModal = ref(false)
@@ -337,14 +416,18 @@ const getTemplateForType = (type) => {
 const loadQuestionnaires = async () => {
   try {
     loading.value = true
-    const [questionnairesRes, questionsRes, reponsesRes] = await Promise.all([
+    const [questionnairesRes, questionsRes, reponsesRes, seuilsRes, climatsRes] = await Promise.all([
       apiService.getQuestionnaires(),
       apiService.getQuestions(),
-      apiService.getReponses()
+      apiService.getReponses(),
+      apiService.getSeuils(),
+      apiService.getClimats()
     ])
     questionnaires.value = questionnairesRes.data
     questions.value = questionsRes.data
     reponses.value = reponsesRes.data
+    seuils.value = seuilsRes.data
+    climats.value = climatsRes.data
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error)
     alert('Erreur lors du chargement des données')
@@ -359,6 +442,15 @@ const getQuestionsByQuestionnaire = (questionnaireId) => {
 
 const getReponsesByQuestion = (questionId) => {
   return reponses.value.filter(r => r.question === questionId).sort((a, b) => a.score - b.score)
+}
+
+const getSeuilsByQuestionnaire = (questionnaireId) => {
+  return seuils.value.filter(s => s.questionnaire === questionnaireId).sort((a, b) => a.minScore - b.minScore)
+}
+
+const getClimatName = (climatId) => {
+  const climat = climats.value.find(c => c.idClimat === climatId)
+  return climat ? climat.nomClimat : 'Climat inconnu'
 }
 
 const toggleQuestionnaire = (id) => {
@@ -620,6 +712,105 @@ const deleteReponse = async (id) => {
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)
       alert('Erreur lors de la suppression de la réponse')
+    }
+  }
+}
+
+// Seuil functions
+const openAddSeuilModal = (questionnaireId) => {
+  isEditingSeuil.value = false
+  seuilForm.value = {
+    minScore: 0,
+    maxScore: 10,
+    description: '',
+    questionnaire: questionnaireId,
+    climat: '',
+  }
+  showSeuilModal.value = true
+}
+
+const openEditSeuilModal = (seuil) => {
+  isEditingSeuil.value = true
+  editingSeuilId.value = seuil.idSeuil
+  seuilForm.value = {
+    minScore: seuil.minScore,
+    maxScore: seuil.maxScore,
+    description: seuil.description,
+    questionnaire: seuil.questionnaire,
+    climat: seuil.climat,
+  }
+  showSeuilModal.value = true
+}
+
+const closeSeuilModal = () => {
+  showSeuilModal.value = false
+  seuilForm.value = {
+    minScore: 0,
+    maxScore: 10,
+    description: '',
+    questionnaire: null,
+    climat: '',
+  }
+  editingSeuilId.value = null
+}
+
+const checkSeuilOverlap = (questionnaireId, minScore, maxScore, excludeSeuilId = null) => {
+  const existingSeuils = seuils.value.filter(s =>
+    s.questionnaire === questionnaireId &&
+    (excludeSeuilId === null || s.idSeuil !== excludeSeuilId)
+  )
+
+  for (const seuil of existingSeuils) {
+    // Vérifie si les plages se chevauchent
+    if (minScore <= seuil.maxScore && maxScore >= seuil.minScore) {
+      return seuil
+    }
+  }
+  return null
+}
+
+const saveSeuil = async () => {
+  try {
+    if (seuilForm.value.minScore >= seuilForm.value.maxScore) {
+      alert('Le score minimum doit être inférieur au score maximum')
+      return
+    }
+
+    // Vérifier les chevauchements de plages de scores
+    const overlappingSeuil = checkSeuilOverlap(
+      seuilForm.value.questionnaire,
+      seuilForm.value.minScore,
+      seuilForm.value.maxScore,
+      isEditingSeuil.value ? editingSeuilId.value : null
+    )
+
+    if (overlappingSeuil) {
+      const climatName = getClimatName(overlappingSeuil.climat)
+      alert(`Erreur : Cette plage de scores chevauche le climat "${climatName}" (${overlappingSeuil.minScore} - ${overlappingSeuil.maxScore})`)
+      return
+    }
+
+    if (isEditingSeuil.value) {
+      await apiService.updateSeuil(editingSeuilId.value, seuilForm.value)
+    } else {
+      await apiService.createSeuil(seuilForm.value)
+    }
+    closeSeuilModal()
+    loadQuestionnaires()
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error)
+    alert('Erreur lors de la sauvegarde du seuil')
+  }
+}
+
+const deleteSeuil = async (id) => {
+  if (confirm('Êtes-vous sûr de vouloir supprimer ce seuil ?')) {
+    try {
+      await apiService.deleteSeuil(id)
+      loadQuestionnaires()
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      alert('Erreur lors de la suppression du seuil')
     }
   }
 }
@@ -1053,14 +1244,123 @@ h1 {
 .btn-delete-tiny:hover {
   background: #c0392b;
 }
-
+  
 .locked-responses-info {
+background: #f8f9fa;
+color: #6c757d;
+padding: 0.5rem 1rem;
+border-radius: 4px;
+font-size: 0.85rem;
+margin-bottom: 0.5rem;
+border-left: 3px solid #6c757d;
+}
+
+/* Seuils/Climats styles */
+.questionnaire-content {
   background: #f8f9fa;
-  color: #6c757d;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.seuils-section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.seuils-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.seuil-item {
+  background: white;
+  border-radius: 6px;
+  padding: 1rem;
+  border-left: 3px solid #9b59b6;
+}
+
+.seuil-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 0.5rem;
-  border-left: 3px solid #6c757d;
+}
+
+.seuil-climat {
+  background: #9b59b6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.seuil-range {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.seuil-description {
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.seuil-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.seuils-count {
+  font-size: 0.8rem;
+  color: #9b59b6;
+  font-weight: 500;
+}
+
+.modal-large {
+  max-width: 600px;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: white;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
 }
 </style>
