@@ -390,7 +390,7 @@ const filterData = () => {
 
 const exportToCSV = () => {
   // En-têtes du CSV
-  const headers = ['Date', 'Année', 'Mois', 'Personne (Email)', 'Climat', 'Score Total']
+  const headers = ['Date', 'Année', 'Mois', 'Climat', 'Score Total']
 
   // Données filtrées
   const rows = filteredStatuts.value.map(statut => {
@@ -399,7 +399,6 @@ const exportToCSV = () => {
       formatDate(statut.dateStatut),
       date.getFullYear(),
       date.getMonth() + 1,
-      getPersonneEmail(statut.personne),
       getClimatName(statut.climat),
       statut.scoreTotal
     ]
