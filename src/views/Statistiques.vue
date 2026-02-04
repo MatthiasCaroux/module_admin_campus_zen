@@ -55,71 +55,31 @@
           </div>
         </div>
 
-        <!-- Statistiques par climat -->
-        <div class="climate-stats">
-          <h2>Répartition par climat {{ filterPeriodText }}</h2>
-          <div class="climate-grid">
-            <div v-for="stat in climateStats" :key="stat.climatId" class="climate-card">
-              <h3>{{ stat.climatName }}</h3>
-              <div class="climate-data">
-                <p class="climate-count">{{ stat.count }} personne(s)</p>
-                <p class="climate-percentage">{{ stat.percentage }}%</p>
+        <!-- Graphiques -->
+        <div class="charts-section">
+          <h2>Graphiques {{ filterPeriodText }}</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3>Répartition par climat</h3>
+              <div v-if="climateStats.length" class="chart-container">
+                <Doughnut :data="climateDistributionChartData" :options="doughnutOptions" />
               </div>
-              <div class="climate-bar">
-                <div class="climate-bar-fill" :style="{ width: stat.percentage + '%' }"></div>
-              </div>
+              <p v-else class="empty-state">Aucune donnée disponible</p>
             </div>
-          </div>
-        </div>
-
-        <!-- Évolution mensuelle -->
-        <div class="monthly-evolution">
-          <h2>Évolution mensuelle</h2>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Période</th>
-                  <th>Total</th>
-                  <th v-for="climat in climats" :key="climat.idClimat">{{ climat.nomClimat }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="month in monthlyData" :key="month.period">
-                  <td><strong>{{ month.periodLabel }}</strong></td>
-                  <td>{{ month.total }}</td>
-                  <td v-for="climat in climats" :key="climat.idClimat">
-                    {{ month.climates[climat.idClimat] || 0 }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Détails complets -->
-        <div class="details-section">
-          <h2>Détails des réponses {{ filterPeriodText }}</h2>
-          <p class="details-count">{{ filteredStatuts.length }} réponse(s)</p>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Personne</th>
-                  <th>Climat</th>
-                  <th>Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="statut in filteredStatuts" :key="statut.id">
-                  <td>{{ formatDate(statut.dateStatut) }}</td>
-                  <td>{{ getPersonneEmail(statut.personne) }}</td>
-                  <td><span class="badge-climat">{{ getClimatName(statut.climat) }}</span></td>
-                  <td>{{ statut.scoreTotal }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="chart-card">
+              <h3>Évolution du nombre de réponses</h3>
+              <div v-if="monthlyTrendChartData.labels.length" class="chart-container">
+                <Line :data="monthlyTrendChartData" :options="lineOptions" />
+              </div>
+              <p v-else class="empty-state">Aucune donnée disponible</p>
+            </div>
+            <div class="chart-card">
+              <h3>Score moyen par climat</h3>
+              <div v-if="avgScoreChartData.labels.length" class="chart-container">
+                <Bar :data="avgScoreChartData" :options="barOptions" />
+              </div>
+              <p v-else class="empty-state">Aucune donnée disponible</p>
+            </div>
           </div>
         </div>
       </div>
@@ -129,8 +89,33 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement
+} from 'chart.js'
+import { Doughnut, Line, Bar } from 'vue-chartjs'
 import Navbar from '../components/Navbar.vue'
 import apiService from '../services/api'
+
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement
+)
 
 const statuts = ref([])
 const personnes = ref([])
@@ -230,6 +215,125 @@ const climateStats = computed(() => {
     percentage: total > 0 ? Math.round((stat.count / total) * 100) : 0
   })).sort((a, b) => b.count - a.count)
 })
+
+const chartColors = [
+  '#667eea',
+  '#764ba2',
+  '#27ae60',
+  '#f39c12',
+  '#e74c3c',
+  '#3498db',
+  '#9b59b6',
+  '#1abc9c'
+]
+
+const climateDistributionChartData = computed(() => {
+  const labels = climateStats.value.map(stat => stat.climatName)
+  const data = climateStats.value.map(stat => stat.count)
+  return {
+    labels,
+    datasets: [
+      {
+        data,
+        backgroundColor: labels.map((_, index) => chartColors[index % chartColors.length]),
+        borderWidth: 0
+      }
+    ]
+  }
+})
+
+const monthlyTrendChartData = computed(() => {
+  const monthlyMap = {}
+  filteredStatuts.value.forEach(s => {
+    const date = new Date(s.dateStatut)
+    const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    if (!monthlyMap[period]) {
+      monthlyMap[period] = 0
+    }
+    monthlyMap[period]++
+  })
+
+  const sortedPeriods = Object.keys(monthlyMap).sort((a, b) => a.localeCompare(b))
+  return {
+    labels: sortedPeriods.map(period => formatPeriod(period)),
+    datasets: [
+      {
+        label: 'Réponses',
+        data: sortedPeriods.map(period => monthlyMap[period]),
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3
+      }
+    ]
+  }
+})
+
+const avgScoreChartData = computed(() => {
+  const scoreMap = {}
+  filteredStatuts.value.forEach(s => {
+    if (!scoreMap[s.climat]) {
+      scoreMap[s.climat] = { total: 0, count: 0 }
+    }
+    scoreMap[s.climat].total += Number(s.scoreTotal) || 0
+    scoreMap[s.climat].count++
+  })
+
+  const labels = climateStats.value.map(stat => stat.climatName)
+  const data = climateStats.value.map(stat => {
+    const entry = scoreMap[stat.climatId]
+    return entry && entry.count > 0 ? Math.round((entry.total / entry.count) * 10) / 10 : 0
+  })
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Score moyen',
+        data,
+        backgroundColor: labels.map((_, index) => chartColors[index % chartColors.length]),
+        borderRadius: 6
+      }
+    ]
+  }
+})
+
+const commonChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom'
+    }
+  }
+}
+
+const doughnutOptions = {
+  ...commonChartOptions,
+  cutout: '60%'
+}
+
+const lineOptions = {
+  ...commonChartOptions,
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        precision: 0
+      }
+    }
+  }
+}
+
+const barOptions = {
+  ...commonChartOptions,
+  scales: {
+    y: {
+      beginAtZero: true
+    }
+  }
+}
 
 const monthlyData = computed(() => {
   const monthlyMap = {}
@@ -439,6 +543,42 @@ h2 {
 .monthly-evolution,
 .details-section {
   margin-bottom: 2rem;
+}
+
+.charts-section {
+  margin-bottom: 2rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.chart-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 260px;
+}
+
+.empty-state {
+  color: #7f8c8d;
+  margin: auto 0;
+  text-align: center;
 }
 
 .climate-grid {
