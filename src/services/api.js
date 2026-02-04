@@ -131,6 +131,13 @@ const apiService = {
   // Statuts
   getStatuts: () => api.get('/statuts/'),
 
+  // Seuils (climats avec plages de scores)
+  getSeuils: () => api.get('/seuils/'),
+  getSeuil: (id) => api.get(`/seuils/${id}/`),
+  createSeuil: (data) => api.post('/seuils/', data),
+  updateSeuil: (id, data) => api.put(`/seuils/${id}/`, data),
+  deleteSeuil: (id) => api.delete(`/seuils/${id}/`),
+
   // ===== AUTHENTIFICATION AVEC COOKIES HTTPONLY =====
   
   // Login - Les tokens sont automatiquement stockés dans les cookies HttpOnly
