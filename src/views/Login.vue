@@ -11,7 +11,7 @@
             type="text"
             id="username"
             v-model="username"
-            placeholder="admin"
+            placeholder="Adresse e-mail"
             required
           />
         </div>
@@ -22,7 +22,7 @@
             type="password"
             id="password"
             v-model="password"
-            placeholder="admin"
+            placeholder="Mot de passe"
             required
           />
         </div>
