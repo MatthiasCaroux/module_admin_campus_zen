@@ -62,21 +62,21 @@
             <div class="chart-card">
               <h3>Répartition par climat</h3>
               <div v-if="climateStats.length" class="chart-container">
-                <Doughnut :data="climateDistributionChartData" :options="doughnutOptions" />
+                <Doughnut :key="'doughnut-' + chartKey" :data="climateDistributionChartData" :options="doughnutOptions" />
               </div>
               <p v-else class="empty-state">Aucune donnée disponible</p>
             </div>
             <div class="chart-card">
               <h3>Évolution du nombre de réponses</h3>
               <div v-if="monthlyTrendChartData.labels.length" class="chart-container">
-                <Line :data="monthlyTrendChartData" :options="lineOptions" />
+                <Line :key="'line-' + chartKey" :data="monthlyTrendChartData" :options="lineOptions" />
               </div>
               <p v-else class="empty-state">Aucune donnée disponible</p>
             </div>
             <div class="chart-card">
               <h3>Score moyen par climat</h3>
               <div v-if="avgScoreChartData.labels.length" class="chart-container">
-                <Bar :data="avgScoreChartData" :options="barOptions" />
+                <Bar :key="'bar-' + chartKey" :data="avgScoreChartData" :options="barOptions" />
               </div>
               <p v-else class="empty-state">Aucune donnée disponible</p>
             </div>
@@ -123,6 +123,7 @@ const climats = ref([])
 const loading = ref(true)
 const selectedYear = ref('')
 const selectedMonth = ref('')
+const chartKey = ref(0)
 
 const loadData = async () => {
   try {
@@ -181,7 +182,7 @@ const filteredStatuts = computed(() => {
   if (selectedYear.value) {
     filtered = filtered.filter(s => {
       const year = new Date(s.dateStatut).getFullYear()
-      return year.toString() === selectedYear.value
+      return year === Number(selectedYear.value)
     })
   }
 
@@ -385,7 +386,8 @@ const getClimatName = (id) => {
 }
 
 const filterData = () => {
-  // Trigger computed properties recalculation
+  // Force chart refresh by updating key
+  chartKey.value++
 }
 
 const exportToCSV = () => {
