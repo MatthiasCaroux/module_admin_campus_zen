@@ -110,6 +110,11 @@ npm run build
 
 Après exécution, le build est disponible dans `module_admin_campus_zen/dist` et sert de base au déploiement.
 
+
+### Sur un navigateur
+
+Pour accéder au module administrateur depuis un navigateur, ouvrez : `https://incidents-bouake.com`
+
 ## 📱 Utilisation
 
 ### Connexion
