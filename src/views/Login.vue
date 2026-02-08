@@ -11,7 +11,7 @@
             type="text"
             id="username"
             v-model="username"
-            placeholder="Adresse e-mail"
+            placeholder="Identifiant"
             required
           />
         </div>
@@ -46,7 +46,7 @@ const password = ref('')
 const error = ref('')
 
 const handleLogin = () => {
-  apiService.login({ emailPers: username.value, password: password.value })
+  apiService.login({ login: username.value, password: password.value })
     .then(response => {
       console.log('Login response:', response)
       console.log('Set-Cookie headers:', response.headers)
