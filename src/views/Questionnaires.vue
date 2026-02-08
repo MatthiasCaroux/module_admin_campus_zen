@@ -64,9 +64,23 @@
               Aucune question pour ce questionnaire
             </div>
             <div v-else class="questions-list">
-              <div v-for="question in getQuestionsByQuestionnaire(questionnaire.idQuestionnaire)" :key="question.idQuestion" class="question-item">
+              <div
+                v-for="question in getQuestionsByQuestionnaire(questionnaire.idQuestionnaire)"
+                :key="question.idQuestion"
+                class="question-item"
+                :class="{
+                  'dragging': draggedQuestionId === question.idQuestion,
+                  'drag-over': dragOverQuestionId === question.idQuestion
+                }"
+                draggable="true"
+                @dragstart="onDragStart(question)"
+                @dragover.prevent="onDragOver(question)"
+                @dragleave="onDragLeave"
+                @drop="onDrop(question, questionnaire.idQuestionnaire)"
+              >
                 <!-- En-tête de la question -->
                 <div class="question-content">
+                  <span class="drag-handle" title="Glisser pour réordonner">⠿</span>
                   <div class="question-header" @click="toggleQuestion(question.idQuestion)">
                     <span class="expand-icon">{{ expandedQuestions.includes(question.idQuestion) ? '▼' : '►' }}</span>
                     <div class="question-text">
@@ -436,8 +450,72 @@ const loadQuestionnaires = async () => {
   }
 }
 
+// Drag & drop
+const draggedQuestionId = ref(null)
+const dragOverQuestionId = ref(null)
+
+const onDragStart = (question) => {
+  draggedQuestionId.value = question.idQuestion
+}
+
+const onDragOver = (question) => {
+  if (draggedQuestionId.value !== question.idQuestion) {
+    dragOverQuestionId.value = question.idQuestion
+  }
+}
+
+const onDragLeave = () => {
+  dragOverQuestionId.value = null
+}
+
+const onDrop = async (targetQuestion, questionnaireId) => {
+  dragOverQuestionId.value = null
+  if (!draggedQuestionId.value || draggedQuestionId.value === targetQuestion.idQuestion) {
+    draggedQuestionId.value = null
+    return
+  }
+
+  const sorted = [...questions.value
+    .filter(q => q.questionnaireId === questionnaireId)
+    .sort((a, b) => a.ordre - b.ordre)]
+
+  const fromIndex = sorted.findIndex(q => q.idQuestion === draggedQuestionId.value)
+  const toIndex = sorted.findIndex(q => q.idQuestion === targetQuestion.idQuestion)
+  draggedQuestionId.value = null
+
+  if (fromIndex === -1 || toIndex === -1) return
+
+  const [moved] = sorted.splice(fromIndex, 1)
+  sorted.splice(toIndex, 0, moved)
+
+  sorted.forEach((q, i) => { q.ordre = i })
+
+  questions.value = questions.value.map(q => {
+    const updated = sorted.find(u => u.idQuestion === q.idQuestion)
+    return updated ? { ...q, ordre: updated.ordre } : q
+  })
+
+  try {
+    await Promise.all(
+      sorted.map(q => apiService.updateQuestion(q.idQuestion, {
+        intituleQuestion: q.intituleQuestion,
+        poids: q.poids,
+        ordre: q.ordre,
+        questionnaireId: q.questionnaireId,
+        typeQuestion: getQuestionTypeValue(q),
+      }))
+    )
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'ordre:', error)
+    alert('Erreur lors de la sauvegarde de l\'ordre')
+    loadQuestionnaires()
+  }
+}
+
 const getQuestionsByQuestionnaire = (questionnaireId) => {
-  return questions.value.filter(q => q.questionnaireId === questionnaireId)
+  return questions.value
+    .filter(q => q.questionnaireId === questionnaireId)
+    .sort((a, b) => a.ordre - b.ordre)
 }
 
 const getReponsesByQuestion = (questionId) => {
@@ -919,6 +997,31 @@ h1 {
   border-radius: 6px;
   overflow: hidden;
   border-left: 3px solid #667eea;
+  cursor: grab;
+  transition: opacity 0.2s, border-left-color 0.2s, background 0.2s;
+}
+
+.question-item.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.question-item.drag-over {
+  border-left-color: #27ae60;
+  background: #f0fff4;
+}
+
+.drag-handle {
+  padding: 1rem 0.5rem 1rem 0.75rem;
+  color: #b0b0b0;
+  font-size: 1.2rem;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.drag-handle:hover {
+  color: #667eea;
 }
 
 .question-content {
