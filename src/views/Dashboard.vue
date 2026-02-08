@@ -3,7 +3,7 @@
     <Navbar />
     <div class="container">
       <h1>Tableau de bord</h1>
-      <p class="welcome">Bienvenue sur le module d'administration de Campus Zen</p>
+      <p class="welcome">Bienvenue sur le module d'administration de CampusZen</p>
 
       <div class="stats-grid">
         <div class="stat-card">

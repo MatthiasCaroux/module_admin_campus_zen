@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1>Campus Zen Admin</h1>
+      <h1>CampusZen Admin</h1>
       <p class="subtitle">Connexion</p>
 
       <form @submit.prevent="handleLogin">
@@ -11,7 +11,7 @@
             type="text"
             id="username"
             v-model="username"
-            placeholder="admin"
+            placeholder="Identifiant"
             required
           />
         </div>
@@ -22,7 +22,7 @@
             type="password"
             id="password"
             v-model="password"
-            placeholder="admin"
+            placeholder="Mot de passe"
             required
           />
         </div>
@@ -38,6 +38,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import apiService from '../services/api'
 
 const router = useRouter()
 const username = ref('')
@@ -45,12 +46,31 @@ const password = ref('')
 const error = ref('')
 
 const handleLogin = () => {
-  if (username.value === 'admin' && password.value === 'admin') {
-    localStorage.setItem('isAuthenticated', 'true')
-    router.push('/')
-  } else {
-    error.value = 'Identifiants incorrects'
-  }
+  apiService.login({ login: username.value, password: password.value })
+    .then(response => {
+      console.log('Login response:', response)
+      console.log('Set-Cookie headers:', response.headers)
+      console.log('Cookies après login:', document.cookie)
+      console.log('Response data:', response.data)
+      
+      if (response.status === 200 && response.data.role === 'admin') {
+        // Les tokens sont maintenant stockés dans les cookies HttpOnly
+        // On stocke uniquement le flag d'authentification
+        localStorage.setItem('isAuthenticated', 'true')
+        
+        router.push('/')
+      } else {
+        error.value = 'Accès refusé. Vous n\'êtes pas administrateur.'
+      }
+    })
+    .catch((error_) => {
+      console.error('Login error:', error_.response?.data)
+      if (error_.response && (error_.response.status === 401 || error_.response.status === 400)) {
+        error.value = 'Identifiants incorrects'
+      } else {
+        error.value = 'Une erreur est survenue. Veuillez réessayer.'
+      }
+    }) 
 }
 </script>
 

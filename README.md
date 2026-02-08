@@ -1,361 +1,353 @@
-# Module Admin Campus Zen
+# Module Admin CampusZen
 
-Module d'administration pour le projet Campus Zen, développé avec Vue.js 3 et Vite.
+<div align="center">
 
-Interface d'administration complète permettant de gérer facilement les questionnaires, questions, réponses et ressources de l'application Campus Zen.
+**Interface d'administration** pour la plateforme CampusZen
 
-## ✨ Fonctionnalités principales
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.5-green.svg)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.2-blueviolet.svg)](https://vitejs.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
 
-### 🔐 Authentification
-- Connexion sécurisée (admin/admin)
-- Protection des routes avec guard
+</div>
 
-### 📊 Dashboard
-- Vue d'ensemble des statistiques
-- Compteurs en temps réel (questionnaires, questions, réponses, ressources, climats, personnes)
-- Accès rapide aux sections principales
+## 📋 Table des matières
 
-### 📋 Gestion des Questionnaires
-- **Vue hiérarchique avec menus déroulants** :
-  - Cliquer sur un questionnaire → affiche ses questions
-  - Cliquer sur une question → affiche ses réponses
-- **CRUD complet à tous les niveaux** :
-  - Créer/Modifier/Supprimer des questionnaires
-  - Ajouter/Modifier/Supprimer des questions directement depuis le questionnaire
-  - Ajouter/Modifier/Supprimer des réponses directement depuis la question
-- Design épuré avec bordures colorées et badges de score
+- [Aperçu](#-aperçu)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Mise en production (OVH)](#-mise-en-production-ovh)
+- [Utilisation](#-utilisation)
+- [Structure du projet](#-structure-du-projet)
+- [Fonctionnalités](#-fonctionnalités)
+- [Dépannage](#-dépannage)
 
-### ❓ Gestion des Questions
-- CRUD complet (Créer, Lire, Modifier, Supprimer)
-- **Création automatique de réponses Likert** :
-  - Option cochable lors de la création d'une question
-  - Génère automatiquement 7 réponses (Jamais → Toujours, scores 1-7)
-- Sélection du questionnaire associé
-- Définition du poids de la question
-- **Vue des réponses** : bouton pour afficher toutes les réponses d'une question en modal
-- Affichage du nombre de réponses par question
+## 🎯 Aperçu
 
-### 💬 Gestion des Réponses
-- CRUD complet
-- Lien vers la question parente
-- Attribution de scores
-- Filtrage par question
+Module Admin CampusZen est une **interface d'administration complète** permettant aux administrateurs de gérer :
 
-### 📚 Gestion des Ressources
-- CRUD complet
-- Types de ressources : Vidéo, Article, Podcast, Autre
-- Badges colorés par type
-- Liens externes cliquables
-- Descriptions détaillées
+✅ **Questionnaires** avec système hiérarchique  
+✅ **Questions** avec génération automatique Likert  
+✅ **Réponses** avec scores configurables  
+✅ **Ressources** (articles, vidéos, podcasts)  
+✅ **Climats** (états émotionnels résultants)  
+✅ **Statistiques** en temps réel  
 
-### 🌤️ Gestion des Climats
-- CRUD complet
-- Affichage en cartes élégantes
-- Interface simple et intuitive
+### Stack technologique
 
-### 👥 Gestion des Personnes et Messages
-- Vue en lecture seule
-- Affichage JSON détaillé
+```
+┌─────────────────────────────────┐
+│   Vue.js 3 + Composition API    │  Framework
+├─────────────────────────────────┤
+│   Vite                          │  Build tool ultra-rapide
+├─────────────────────────────────┤
+│   Vue Router 4                  │  Navigation & guards
+├─────────────────────────────────┤
+│   Axios                         │  Client HTTP
+├─────────────────────────────────┤
+│   Chart.js / Vue-Chartjs        │  Graphiques
+└─────────────────────────────────┘
+```
 
-## 📋 Prérequis
+## 📦 Prérequis
 
-### Pour l'installation locale
-- Node.js 18+ (recommandé: 20+)
-- npm 9+ ou yarn 1.22+
+### Requis
+- **Node.js** 18+ (recommandé: 20+)
+- **npm** 9+ ou **yarn** 1.22+
+- **Git**
 
-### Pour l'installation avec Docker
-- Docker 20+
-- Docker Compose 2+
+### Vérifier les prérequis
 
-## 🚀 Installation et démarrage
+```bash
+node --version      # Doit être 18+
+npm --version
+git --version
+```
 
-### Option 1: Installation locale
+## 🚀 Installation
 
-#### 1. Cloner le repository
+### 1. Cloner le repository
+
 ```bash
 git clone https://github.com/MatthiasCaroux/module_admin_campus_zen.git
 cd module_admin_campus_zen
 ```
 
-#### 2. Installer les dépendances
+### 2. Installer les dépendances
+
 ```bash
 npm install
+# ou
+yarn install
 ```
 
-#### 3. Lancer le serveur de développement
-```bash
-npm run dev
-```
+### 3. Lancer le serveur de développement
 
-L'application sera accessible sur [http://localhost:5173](http://localhost:5173)
+L'application sera disponible à `http://localhost:5173` avec hot-reload.
 
-#### 4. Build pour la production
+### Build production
+
+Pour générer une version de production, utiliser les scripts npm fournis.
+
+## 🚀 Mise en production (OVH)
+
+Le serveur est configuré pour servir le build `dist` généré dans `module_admin_campus_zen`. Aucun détail sensible de configuration n'est requis dans cette documentation.
+
+Pour la mise en production, cloner aussi module_admin_campus_zen dans le home du serveur (par exemple /home/ubuntu) afin que le build soit disponible à un chemin du type /home/ubuntu/module_admin_campus_zen/dist.
+
+### Build côté serveur
+
+Un script dédié est disponible : `buildModuleAdmin.sh`.
+
 ```bash
+#!/bin/bash
+rm -rf node_modules package-lock.json dist
+
+npm install
+
 npm run build
 ```
 
-Les fichiers de production seront générés dans le dossier `dist/`
+Après exécution, le build est disponible dans `module_admin_campus_zen/dist` et sert de base au déploiement.
 
-#### 5. Prévisualiser le build de production
-```bash
-npm run preview
-```
 
-### Option 2: Installation avec Docker
+### Sur un navigateur
 
-**Important:** Avant de builder avec Docker, assurez-vous d'avoir installé les dépendances localement:
+Pour accéder au module administrateur depuis un navigateur, ouvrez : `https://incidents-bouake.com`
 
-```bash
-npm install
-```
+## 📱 Utilisation
 
-#### Développement avec Docker
+### Connexion
 
-```bash
-# Démarrer le service de développement
-docker-compose up dev
+1. Ouvrez `http://localhost:5173`
+2. Identifiants par défaut : **admin** / **admin**
+3. Vous êtes redirigé vers le **Dashboard**
 
-# Ou en arrière-plan
-docker-compose up -d dev
-```
+### 📊 Dashboard
 
-L'application sera accessible sur [http://localhost:5173](http://localhost:5173)
+- Vue d'ensemble des statistiques
+- Compteurs en temps réel
+- Accès rapide aux sections principales
+- Graphiques de synthèse
 
-#### Production avec Docker
+### 📋 Questionnaires (Vue hiérarchique recommandée)
 
-```bash
-# Build et démarrer le service de production
-docker-compose up prod
+**Méthode recommandée** : Gestion via **Questionnaires**
 
-# Ou en arrière-plan
-docker-compose up -d prod
-```
+Permet de naviguer dans l'arborescence :
+- Questionnaire → Questions → Réponses
+- Toutes les actions CRUD intégrées à un seul écran
+- Interface intuitive avec menus déroulants
 
-L'application sera accessible sur [http://localhost:8080](http://localhost:8080)
+**Avantages** :
+- ✅ Vue hiérarchique complète
+- ✅ Toutes les actions CRUD sur un seul écran
+- ✅ Navigation intuitive
+- ✅ Moins de clics nécessaires
 
-#### Build Docker manuel
+### ❓ Questions avec Likert automatique
 
-```bash
-# Build pour le développement
-docker build --target development -t module-admin-campus-zen:dev .
+Option pour créer automatiquement 7 réponses Likert lors de la création d'une question.
 
-# Build pour la production
-docker build --target production -t module-admin-campus-zen:prod .
+**Réponses générées** (échelle 1-7) :
+- Jamais, Rarement, Parfois, Souvent, Très souvent, Presque toujours, Toujours
 
-# Lancer le conteneur de développement
-docker run -p 5173:5173 -v $(pwd):/app -v /app/node_modules module-admin-campus-zen:dev
+### 💬 Réponses
 
-# Lancer le conteneur de production
-docker run -p 8080:80 module-admin-campus-zen:prod
-```
+- Vue détaillée de chaque réponse
+- Scores Likert (1-7)
+- Lien vers la question parente
+- Filtrage par question
 
-## 📦 Scripts disponibles
+### 📚 Ressources
 
-- `npm run dev` - Démarre le serveur de développement avec hot-reload
-- `npm run build` - Build l'application pour la production
-- `npm run preview` - Prévisualise le build de production localement
+Types disponibles :
+- 📹 **Vidéo** (badge bleu)
+- 📄 **Article** (badge vert)
+- 🎙️ **Podcast** (badge orange)
+- 🎯 **Autre** (badge gris)
 
-## 🏗️ Structure du projet
+Champs :
+- Nom de la ressource
+- URL/lien externe
+- Type (avec badge coloré)
+- Description détaillée
+
+### 🌤️ Climats
+
+États émotionnels résultants :
+- Interface simple et intuitive
+- Affichage en cartes élégantes
+- CRUD complet
+- Messages associés par climat
+
+### 📊 Statistiques
+
+- **Questionnaires** : nombre total
+- **Questions** : nombre total
+- **Réponses** : nombre total
+- **Ressources** : nombre total
+- **Utilisateurs** : nombre total
+- **Climats** : états disponibles
+
+## 📁 Structure du projet
 
 ```
 module_admin_campus_zen/
-├── public/             # Fichiers statiques
 ├── src/
-│   ├── assets/        # Assets (images, styles, etc.)
-│   ├── components/    # Composants Vue réutilisables
-│   │   └── Navbar.vue
-│   ├── views/         # Pages de l'application
-│   │   ├── Login.vue
-│   │   ├── Dashboard.vue
-│   │   ├── Questionnaires.vue
-│   │   ├── Questions.vue
-│   │   ├── Reponses.vue
-│   │   ├── Ressources.vue
-│   │   ├── Climats.vue
-│   │   ├── Personnes.vue
-│   │   └── Messages.vue
-│   ├── services/      # Services et API
-│   │   └── api.js
-│   ├── router/        # Configuration du routing
-│   │   └── index.js
-│   ├── App.vue        # Composant racine
-│   └── main.js        # Point d'entrée de l'application
-├── index.html         # Template HTML principal
-├── vite.config.js     # Configuration Vite
-├── package.json       # Dépendances et scripts npm
-├── Dockerfile         # Configuration Docker multi-stage
-├── docker-compose.yml # Configuration Docker Compose
-└── nginx.conf         # Configuration Nginx pour la production
+│   ├── components/              # 🔧 Composants réutilisables
+│   │   └── Navbar.vue          # Navigation principale
+│   │
+│   ├── views/                   # 📱 Pages de l'application
+│   │   ├── Login.vue           # Authentification
+│   │   ├── Dashboard.vue       # Tableau de bord
+│   │   ├── Questionnaires.vue  # Gestion hiérarchique
+│   │   ├── Questions.vue       # Gestion + Likert
+│   │   ├── Reponses.vue        # Gestion des réponses
+│   │   ├── Ressources.vue      # Gestion des ressources
+│   │   ├── Climats.vue         # Gestion des climats
+│   │   ├── Personnes.vue       # Vue des utilisateurs
+│   │   └── Messages.vue        # Vue des messages
+│   │
+│   ├── router/                  # 🗺️ Navigation
+│   │   └── index.js            # Routes & guards
+│   │
+│   ├── services/                # 🌐 API
+│   │   └── api.js              # Client Axios centralisé
+│   │
+│   ├── stores/                  # 🔄 État global (optionnel)
+│   │   └── auth.js
+│   │
+│   ├── assets/                  # 📦 Ressources
+│   │   └── styles/
+│   │
+│   ├── App.vue                  # 📍 Composant racine
+│   └── main.js                  # Point d'entrée
+│
+├── public/                       # Fichiers statiques
+├── vite.config.js              # Configuration Vite
+├── index.html                   # Template HTML
+└── package.json
 ```
 
-## 🐳 Architecture Docker
+## 🔐 Sécurité
 
-Ce projet utilise une architecture Docker multi-stage:
+### Authentification
 
-- **Stage de développement**: Image Node.js avec hot-reload pour le développement
-- **Stage de build**: Compile l'application Vue.js
-- **Stage de production**: Image Nginx légère pour servir l'application en production
+✅ **Cookies HttpOnly** pour les tokens JWT  
+✅ **Guards Vue Router** pour protéger les routes  
+✅ **Refresh automatique** des tokens expirants  
+✅ **Déconnexion sécurisée** (suppression des cookies)  
 
-### Avantages
-- ✅ Images optimisées et légères
-- ✅ Build rapide et efficace
-- ✅ Séparation des environnements dev/prod
-- ✅ Hot-reload en développement
-- ✅ Configuration Nginx optimisée pour Vue.js
+### Flux d'authentification
 
-## 🎯 Guide d'utilisation
-
-### Connexion
-1. Ouvrez l'application sur [http://localhost:5173](http://localhost:5173)
-2. Connectez-vous avec les identifiants : **admin** / **admin**
-3. Vous êtes redirigé vers le Dashboard
-
-### Gérer les Questionnaires (Méthode recommandée)
-1. Allez dans **Questionnaires**
-2. Cliquez sur un questionnaire pour le déplier
-3. Utilisez **"+ Ajouter une question"** pour créer une nouvelle question
-4. Cliquez sur une question pour la déplier
-5. Utilisez **"+ Ajouter une réponse"** pour créer une nouvelle réponse
-6. Modifiez ou supprimez directement avec les boutons à droite
-
-**Avantage** : Vue hiérarchique complète en un seul écran !
-
-### Créer une Question avec échelle Likert
-1. Allez dans **Questions**
-2. Cliquez sur **"+ Nouvelle Question"**
-3. Remplissez l'intitulé et le poids
-4. **Cochez "Créer automatiquement les réponses Likert"**
-5. Validez → 7 réponses sont créées automatiquement (scores 1 à 7)
-
-### Voir les Réponses d'une Question
-1. Dans la page **Questions**, cliquez sur le bouton violet **"X réponse(s)"**
-2. Un modal s'ouvre avec toutes les réponses triées par score
-
-### Gérer les Ressources
-1. Allez dans **Ressources**
-2. Ajoutez des vidéos, articles, podcasts avec leurs liens
-3. Les badges de couleur indiquent automatiquement le type
-
-## 🛠️ Technologies utilisées
-
-- **Vue.js 3** - Framework JavaScript progressif avec Composition API
-- **Vue Router 4** - Routing avec protection des routes
-- **Axios** - Client HTTP pour les appels API
-- **Vite** - Build tool et dev server ultra-rapide avec HMR
-- **Docker** - Containerisation multi-stage
-- **Nginx** - Serveur web pour la production
-
-## 🏗️ Architecture
-
-### API Backend
-- URL de base : `http://54.38.35.105:8000/api/`
-- Endpoints : questionnaires, questions, reponses, ressources, climats, personnes, messages, etc.
-
-### Structure Frontend
 ```
-src/
-├── components/
-│   ├── Navbar.vue          # Navigation principale
-│   └── HelloWorld.vue      # Composant exemple (non utilisé)
-├── views/
-│   ├── Login.vue           # Page de connexion
-│   ├── Dashboard.vue       # Tableau de bord
-│   ├── Questionnaires.vue  # Gestion avec menus déroulants
-│   ├── Questions.vue       # Gestion des questions + Likert
-│   ├── Reponses.vue        # Gestion des réponses
-│   ├── Ressources.vue      # Gestion des ressources
-│   ├── Climats.vue         # Gestion des climats
-│   ├── Personnes.vue       # Vue des personnes
-│   └── Messages.vue        # Vue des messages
-├── services/
-│   └── api.js              # Service API centralisé
-├── router/
-│   └── index.js            # Configuration du routing
-├── App.vue                 # Composant racine
-└── main.js                 # Point d'entrée
+1. Connexion avec email/password
+        ↓
+2. Backend retourne tokens dans cookies HttpOnly
+        ↓
+3. Les tokens sont automatiquement envoyés avec chaque requête
+        ↓
+4. Guard Vue Router vérifie l'authentification
+        ↓
+5. Si expiré, refresh automatique du token
+        ↓
+6. Déconnexion = suppression des cookies
 ```
 
-## 📝 Commandes Docker utiles
+
+
+## 🛠️ Utilisation avancée
+
+### API Service
+
+Tous les appels API passent par un service centralisé (`src/services/api.js`) avec support complet des opérations CRUD :
+- **GET** : Récupérer les ressources
+- **POST** : Créer des ressources
+- **PUT** : Mettre à jour les ressources
+- **DELETE** : Supprimer les ressources
+
+### Router Guards
+
+Protection des routes au niveau admin avec vérification d'authentification automatique.
+
+
+## 🧪 Tests et qualité
+
+### Scripts disponibles
 
 ```bash
-# Arrêter les conteneurs
-docker-compose down
-
-# Voir les logs
-docker-compose logs -f
-
-# Reconstruire les images
-docker-compose build
-
-# Nettoyer les conteneurs et volumes
-docker-compose down -v
-
-# Lister les conteneurs actifs
-docker ps
+npm run dev        # Développement avec hot-reload
+npm run build      # Build production
+npm run preview    # Prévisualise le build
 ```
 
-## 🔧 Configuration
+### Vérification du build
 
-### Variables d'environnement
-
-Créez un fichier `.env` à la racine du projet pour les variables d'environnement:
-
-```env
-VITE_API_URL=http://localhost:3000/api
+```bash
+npm run build      # Génère dist/
+npm run preview    # Teste le build
 ```
 
-Les variables d'environnement commençant par `VITE_` seront automatiquement injectées dans l'application.
+## 📊 Gestion des données
 
-## 🎨 Design et UX
+### Hiérarchie des données
 
-- Interface moderne et responsive
-- Palette de couleurs cohérente (violet/bleu)
-- Animations et transitions fluides
-- Feedback visuel sur toutes les actions
-- Modals pour les formulaires
-- Boutons d'action alignés et uniformes
-- Badges colorés pour les types et scores
-- Messages de confirmation pour les suppressions
+```
+Questionnaire (1)
+    ├── Question (N)
+    │   └── Réponse (M)
+    │
+    └── SubmitRecu
+        └── Reponse_Personne
+```
 
-## 🔑 Fonctionnalités avancées
+### Flux de données
 
-### Menu déroulant hiérarchique
-- Navigation intuitive à 3 niveaux (Questionnaire → Questions → Réponses)
-- Icônes ► et ▼ pour indiquer l'état (fermé/ouvert)
-- Actions CRUD disponibles à chaque niveau
-- Vue d'ensemble complète en un seul écran
+```
+Admin crée/modifie données
+        ↓
+API reçoit et valide
+        ↓
+BD mise à jour
+        ↓
+Frontend rafraîchit l'affichage
+        ↓
+Admin voit les changements
+```
 
-### Génération automatique Likert
-- Template de 7 réponses pré-configuré
-- Échelle standardisée : Jamais (1) → Toujours (7)
-- Gain de temps énorme pour la création de questionnaires
-- Scores automatiquement assignés
+## 🔧 Dépannage
 
-### Gestion en temps réel
-- Rechargement automatique après chaque action
-- Compteurs mis à jour dynamiquement
-- Synchronisation avec l'API backend
-- Pas de rechargement de page nécessaire
+### Port 5173 déjà utilisé
 
-## 🚀 Améliorations futures possibles
+Lancer le serveur sur un port différent avec `npm run dev -- --port 5174`.
 
-- [ ] Recherche et filtres dans les tableaux
-- [ ] Export des données (CSV, Excel)
-- [ ] Import en masse de questionnaires
-- [ ] Statistiques avancées
-- [ ] Système de permissions plus granulaire
-- [ ] Gestion des médias (upload d'images)
-- [ ] Historique des modifications
-- [ ] Mode sombre
+### Erreurs de connexion à l'API
 
-## 📄 Licence
+Vérifier que le backend Django tourne sur `http://localhost:8000`.
 
-Ce projet est destiné au projet Campus Zen.
+### Module not found
 
-## 👤 Auteur
+Réinstaller les dépendances avec `npm install` puis relancer avec `npm run dev`.
 
-Matthias Caroux
+### Erreurs TypeScript
 
----
+Vérifier la configuration TypeScript (`tsconfig.json`) et que toutes les dépendances sont correctement installées.
 
-**Développé avec ❤️ en Vue.js 3**
+## 📚 Ressources
+
+- [Vue.js 3 Docs](https://vuejs.org/)
+- [Vue Router Docs](https://router.vuejs.org/)
+- [Vite Docs](https://vitejs.dev/)
+- [Axios Docs](https://axios-http.com/)
+- [Chart.js Docs](https://www.chartjs.org/)
+## Auteurs
+- Enzo Familiar-Marais
+- Matthias Caroux
+- Niksan Nagarajah
+- Samuel Niveau
+
+## 📝 License
+
+MIT - Voir [LICENSE](../LICENSE)
+

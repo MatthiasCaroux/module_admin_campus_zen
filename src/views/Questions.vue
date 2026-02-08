@@ -14,8 +14,10 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>Ordre</th>
               <th>Intitulé</th>
               <th>Poids</th>
+              <th>Type</th>
               <th>Questionnaire</th>
               <th>Réponses</th>
               <th>Actions</th>
@@ -24,8 +26,14 @@
           <tbody>
             <tr v-for="question in questions" :key="question.idQuestion">
               <td>{{ question.idQuestion }}</td>
+              <td>{{ question.ordre }}</td>
               <td>{{ question.intituleQuestion }}</td>
               <td>{{ question.poids }}</td>
+              <td>
+                <span class="type-badge" :class="'type-' + getQuestionTypeValue(question)">
+                  {{ getQuestionTypeIcon(question) }} {{ getQuestionTypeLabel(question) }}
+                </span>
+              </td>
               <td>{{ getQuestionnaireName(question.questionnaireId) }}</td>
               <td>
                 <button @click="showResponses(question)" class="btn-responses">
@@ -53,6 +61,10 @@
               <textarea v-model="form.intituleQuestion" required></textarea>
             </div>
             <div class="form-group">
+              <label>Ordre</label>
+              <input v-model.number="form.ordre" type="number" min="0" required />
+            </div>
+            <div class="form-group">
               <label>Poids</label>
               <input v-model.number="form.poids" type="number" step="0.1" required />
             </div>
@@ -66,15 +78,14 @@
               </select>
             </div>
 
-            <!-- Option pour créer les réponses Likert -->
-            <div v-if="!isEditing" class="form-group checkbox-group">
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="createLikertResponses" />
-                <span>Créer automatiquement les réponses Likert (échelle de 1 à 7)</span>
-              </label>
-              <p v-if="createLikertResponses" class="help-text">
-                7 réponses seront créées : Jamais (1), Très rarement (2), Rarement (3), Parfois (4), Souvent (5), Très souvent (6), Toujours (7)
-              </p>
+            <div class="form-group">
+              <label>Type de question</label>
+              <select v-model="form.type" required>
+                <option value="">-- Sélectionner un type --</option>
+                <option v-for="t in TYPE_CHOICES" :key="t.value" :value="t.value">
+                  {{ TYPE_ICONS[t.value] }} {{ t.label }}
+                </option>
+              </select>
             </div>
 
             <div class="modal-actions">
@@ -133,6 +144,7 @@ const questionResponses = ref([])
 const form = ref({
   intituleQuestion: '',
   poids: 1.0,
+  ordre: 0,
   questionnaireId: '',
 })
 const editingId = ref(null)
@@ -147,6 +159,34 @@ const likertTemplate = [
   { texte: 'Très souvent', score: 6 },
   { texte: 'Toujours', score: 7 },
 ]
+
+// Types disponibles pour les questions
+const TYPE_CHOICES = [
+  { value: 'likert', label: 'Likert' },
+  { value: 'slider', label: 'Slider' },
+  { value: 'smiley', label: 'Smiley' },
+]
+
+const TYPE_ICONS = {
+  likert: '📊',
+  slider: '🎚️',
+  smiley: '😊',
+}
+
+const getQuestionTypeValue = (question) => {
+  return question?.typeQuestion || question?.type || ''
+}
+
+const getQuestionTypeLabel = (question) => {
+  const value = getQuestionTypeValue(question)
+  const match = TYPE_CHOICES.find(t => t.value === value)
+  return match ? match.label : (value || 'N/A')
+}
+
+const getQuestionTypeIcon = (question) => {
+  const value = getQuestionTypeValue(question)
+  return TYPE_ICONS[value] || '❓'
+}
 
 const loadQuestions = async () => {
   try {
@@ -216,6 +256,7 @@ const openCreateModal = () => {
   form.value = {
     intituleQuestion: '',
     poids: 1.0,
+    ordre: 0,
     questionnaireId: '',
   }
   showModal.value = true
@@ -227,6 +268,7 @@ const openEditModal = (question) => {
   form.value = {
     intituleQuestion: question.intituleQuestion,
     poids: question.poids,
+    ordre: question.ordre,
     questionnaireId: question.questionnaireId,
   }
   showModal.value = true
@@ -237,6 +279,7 @@ const closeModal = () => {
   form.value = {
     intituleQuestion: '',
     poids: 1.0,
+    ordre: 0,
     questionnaireId: '',
   }
   editingId.value = null
