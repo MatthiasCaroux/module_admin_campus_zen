@@ -14,7 +14,7 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Email</th>
+              <th>Identifiant</th>
               <th>Rôle</th>
               <th>Dernière Connexion</th>
               <th>Actions</th>
@@ -23,7 +23,7 @@
           <tbody>
             <tr v-for="personne in personnes" :key="personne.idPers">
               <td>{{ personne.idPers }}</td>
-              <td>{{ personne.emailPers }}</td>
+              <td>{{ personne.login }}</td>
               <td>
                 <span class="badge" :class="'badge-' + personne.role">
                   {{ personne.role }}
@@ -45,15 +45,15 @@
           <h2>{{ isEditing ? 'Modifier' : 'Créer' }} une Personne</h2>
           <form @submit.prevent="savePersonne">
             <div class="form-group">
-              <label>Email *</label>
-              <input 
-                v-model="form.emailPers" 
-                type="email" 
-                required 
-                placeholder="email@example.com"
+              <label>Identifiant *</label>
+              <input
+                v-model="form.login"
+                type="text"
+                required
+                placeholder="Identifiant"
                 :disabled="isEditing"
               />
-              <small v-if="isEditing" class="form-note">L'email ne peut pas être modifié</small>
+              <small v-if="isEditing" class="form-note">L'identifiant ne peut pas être modifié</small>
             </div>
             <div class="form-group">
               <label>Mot de passe {{ isEditing ? '' : '*' }}</label>
@@ -94,7 +94,7 @@ const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
 const form = ref({
-  emailPers: '',
+  login: '',
   passwordPers: '',
   role: '',
 })
@@ -128,7 +128,7 @@ const formatDate = (dateString) => {
 const openCreateModal = () => {
   isEditing.value = false
   form.value = {
-    emailPers: '',
+    login: '',
     passwordPers: '',
     role: '',
   }
@@ -139,7 +139,7 @@ const openEditModal = (personne) => {
   isEditing.value = true
   editingId.value = personne.idPers
   form.value = {
-    emailPers: personne.emailPers,
+    login: personne.login,
     passwordPers: '', // Ne pas pré-remplir le mot de passe
     role: personne.role,
   }
@@ -149,7 +149,7 @@ const openEditModal = (personne) => {
 const closeModal = () => {
   showModal.value = false
   form.value = {
-    emailPers: '',
+    login: '',
     passwordPers: '',
     role: '',
   }
@@ -159,7 +159,7 @@ const closeModal = () => {
 const savePersonne = async () => {
   try {
     const data = {
-      emailPers: form.value.emailPers,
+      login: form.value.login,
       role: form.value.role,
     }
     
