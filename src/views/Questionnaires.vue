@@ -12,16 +12,24 @@
       <div v-else class="questionnaires-list">
         <div v-for="questionnaire in questionnaires" :key="questionnaire.idQuestionnaire" class="questionnaire-card">
           <!-- En-tête du questionnaire -->
-          <div class="questionnaire-header" @click="toggleQuestionnaire(questionnaire.idQuestionnaire)">
+          <div class="questionnaire-header" @click="toggleQuestionnaire(questionnaire.idQuestionnaire)" :class="{ 'questionnaire-inactive': !questionnaire.actif }">
             <div class="questionnaire-info">
               <span class="expand-icon">{{ expandedQuestionnaires.includes(questionnaire.idQuestionnaire) ? '▼' : '►' }}</span>
               <div>
-                <h3>{{ questionnaire.nomQuestionnaire }}</h3>
+                <h3>
+                  {{ questionnaire.nomQuestionnaire }}
+                  <span class="actif-badge" :class="questionnaire.actif ? 'badge-actif' : 'badge-inactif'">
+                    {{ questionnaire.actif ? 'Actif' : 'Inactif' }}
+                  </span>
+                </h3>
                 <p class="description">{{ questionnaire.descriptionQuestionnaire }}</p>
                 <span class="seuils-count">{{ getSeuilsByQuestionnaire(questionnaire.idQuestionnaire).length }} climat(s) configuré(s)</span>
               </div>
             </div>
             <div class="questionnaire-actions" @click.stop>
+              <button @click="toggleActif(questionnaire)" class="btn-toggle" :class="questionnaire.actif ? 'btn-toggle-on' : 'btn-toggle-off'">
+                {{ questionnaire.actif ? 'Désactiver' : 'Activer' }}
+              </button>
               <button @click="openEditModal(questionnaire)" class="btn-edit">Modifier</button>
               <button @click="deleteQuestionnaire(questionnaire.idQuestionnaire)" class="btn-delete">Supprimer</button>
             </div>
@@ -592,6 +600,20 @@ const saveQuestionnaire = async () => {
   }
 }
 
+const toggleActif = async (questionnaire) => {
+  try {
+    await apiService.updateQuestionnaire(questionnaire.idQuestionnaire, {
+      nomQuestionnaire: questionnaire.nomQuestionnaire,
+      descriptionQuestionnaire: questionnaire.descriptionQuestionnaire,
+      actif: !questionnaire.actif,
+    })
+    questionnaire.actif = !questionnaire.actif
+  } catch (error) {
+    console.error('Erreur lors du changement de statut:', error)
+    alert('Erreur lors du changement de statut du questionnaire')
+  }
+}
+
 const deleteQuestionnaire = async (id) => {
   if (confirm('Êtes-vous sûr de vouloir supprimer ce questionnaire ?')) {
     try {
@@ -948,6 +970,60 @@ h1 {
 
 .questionnaire-header:hover {
   background: #f8f9fa;
+}
+
+.questionnaire-inactive {
+  opacity: 0.7;
+}
+
+.actif-badge {
+  display: inline-block;
+  margin-left: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.badge-actif {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.badge-inactif {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.btn-toggle {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s;
+  min-width: 100px;
+}
+
+.btn-toggle-on {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-toggle-on:hover {
+  background: #e0a800;
+}
+
+.btn-toggle-off {
+  background: #28a745;
+  color: white;
+}
+
+.btn-toggle-off:hover {
+  background: #218838;
 }
 
 .questionnaire-info {
