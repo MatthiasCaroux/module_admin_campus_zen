@@ -1,8 +1,8 @@
-# Module Admin Campus Zen
+# Module Admin CampusZen
 
 <div align="center">
 
-**Interface d'administration** pour la plateforme Campus Zen
+**Interface d'administration** pour la plateforme CampusZen
 
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.5-green.svg)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.2-blueviolet.svg)](https://vitejs.dev/)
@@ -24,7 +24,7 @@
 
 ## 🎯 Aperçu
 
-Module Admin Campus Zen est une **interface d'administration complète** permettant aux administrateurs de gérer :
+Module Admin CampusZen est une **interface d'administration complète** permettant aux administrateurs de gérer :
 
 ✅ **Questionnaires** avec système hiérarchique  
 ✅ **Questions** avec génération automatique Likert  

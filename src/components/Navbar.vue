@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="nav-brand">
-      <h1>Campus Zen Admin</h1>
+      <h1>CampusZen Admin</h1>
     </div>
     <div class="nav-links">
       <router-link to="/" class="nav-link">Dashboard</router-link>

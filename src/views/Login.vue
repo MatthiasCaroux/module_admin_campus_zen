@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1>Campus Zen Admin</h1>
+      <h1>CampusZen Admin</h1>
       <p class="subtitle">Connexion</p>
 
       <form @submit.prevent="handleLogin">
