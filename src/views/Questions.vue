@@ -14,6 +14,7 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>Ordre</th>
               <th>Intitulé</th>
               <th>Poids</th>
               <th>Type</th>
@@ -25,6 +26,7 @@
           <tbody>
             <tr v-for="question in questions" :key="question.idQuestion">
               <td>{{ question.idQuestion }}</td>
+              <td>{{ question.ordre }}</td>
               <td>{{ question.intituleQuestion }}</td>
               <td>{{ question.poids }}</td>
               <td>
@@ -57,6 +59,10 @@
             <div class="form-group">
               <label>Intitulé de la question</label>
               <textarea v-model="form.intituleQuestion" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Ordre</label>
+              <input v-model.number="form.ordre" type="number" min="0" required />
             </div>
             <div class="form-group">
               <label>Poids</label>
@@ -138,6 +144,7 @@ const questionResponses = ref([])
 const form = ref({
   intituleQuestion: '',
   poids: 1.0,
+  ordre: 0,
   questionnaireId: '',
 })
 const editingId = ref(null)
@@ -249,6 +256,7 @@ const openCreateModal = () => {
   form.value = {
     intituleQuestion: '',
     poids: 1.0,
+    ordre: 0,
     questionnaireId: '',
   }
   showModal.value = true
@@ -260,6 +268,7 @@ const openEditModal = (question) => {
   form.value = {
     intituleQuestion: question.intituleQuestion,
     poids: question.poids,
+    ordre: question.ordre,
     questionnaireId: question.questionnaireId,
   }
   showModal.value = true
@@ -270,6 +279,7 @@ const closeModal = () => {
   form.value = {
     intituleQuestion: '',
     poids: 1.0,
+    ordre: 0,
     questionnaireId: '',
   }
   editingId.value = null
